@@ -64,5 +64,26 @@ The parity cases prove that the two adapters behave the same
   `CHECK (false) NOT VALID` constraint through `psql`, and an aborting
   trigger through `sqlite3`.
 
+The race cases run on Postgres only, with two `keel-api` processes on one
+estate (PerishLab/seatrial#7). A third Postgres session holds the `@clock`
+`pulse` row, which every Keel write updates after its checks and its own
+write. The first request is sent, the second follows once the first is
+seen waiting, and the holder is terminated once both are waiting:
+
+- `rival`: two processes put the same unique value; one answers 409.
+- `lapse`: one process puts a unique value while the other edits a leased
+  row to it. Broken, PerishLab/keel#68.
+- `dangle`: one process ends a course while the other ties a student to it.
+  Broken, PerishLab/keel#69.
+- `orphan`: one process ends a ledger while the other puts an entry under it.
+  Broken, PerishLab/keel#69.
+
+A broken case asserts the invariant, so it fails until its Bug is fixed. It
+is left out of the default suite and runs by name:
+
+```sh
+cargo run --release -- run --case lapse --case dangle --case orphan
+```
+
 In phase 1 a run gates nothing; its output is evidence on the Issues that
 use it.
