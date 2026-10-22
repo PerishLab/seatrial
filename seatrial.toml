@@ -1,0 +1,9 @@
+[keel]
+version = "0.20.0"
+authority = "https://releases.keel.perish.uk"
+image = "ghcr.io/perishlab/keel"
+model = "models/course.json"
+
+[images]
+postgres = "docker.io/library/postgres:17.11-alpine"
+probe = "docker.io/curlimages/curl:8.10.1"

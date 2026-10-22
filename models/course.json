@@ -1,0 +1,1 @@
+{"version":5,"units":[{"key":"course","name":"Course","veil":false,"frozen":false,"fields":[{"name":"code","kind":"text","only":{"kind":"all"},"serial":null,"need":true,"rule":{"default":null,"values":[],"min":null,"max":null}},{"name":"title","kind":"text","only":{"kind":"free"},"serial":null,"need":true,"rule":{"default":null,"values":[],"min":null,"max":null}}],"bonds":[]}]}
