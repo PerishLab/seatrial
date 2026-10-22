@@ -1,6 +1,7 @@
 mod estate;
 mod life;
 mod race;
+mod refs;
 mod rows;
 
 use serde_json::{Value, json};
@@ -13,9 +14,9 @@ pub const NAMES: [&str; 15] = [
     "cascade", "batch", "pulse", "foreign", "revived", "vetoed",
 ];
 
-pub const RACES: [&str; 4] = ["rival", "lapse", "dangle", "orphan"];
+pub const RACES: [&str; 6] = ["rival", "lapse", "dangle", "orphan", "cling", "adopt"];
 
-pub const OPEN: [&str; 3] = ["lapse", "dangle", "orphan"];
+pub const OPEN: [&str; 1] = ["lapse"];
 
 pub fn known(name: &str) -> Option<&'static str> {
     NAMES.into_iter().chain(RACES).find(|known| *known == name)
@@ -77,6 +78,8 @@ impl Site<'_> {
             "lapse" => self.lapse().await,
             "dangle" => self.dangle().await,
             "orphan" => self.orphan().await,
+            "cling" => self.cling().await,
+            "adopt" => self.adopt().await,
             other => Err(format!("unknown case {other}")),
         }
     }
