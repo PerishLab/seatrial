@@ -16,8 +16,6 @@ use lane::Lane;
 use site::{Run, Site, Store};
 use tokio::task::JoinSet;
 
-const STORES: [Store; 2] = [Store::Lite, Store::Pg];
-
 pub async fn run(pins: &Path, only: &[String]) -> Result<bool, String> {
     let pins = pin::read(pins)?;
     let cases = select(only)?;
@@ -51,15 +49,10 @@ pub async fn run(pins: &Path, only: &[String]) -> Result<bool, String> {
 
 fn select(only: &[String]) -> Result<Vec<&'static str>, String> {
     if only.is_empty() {
-        return Ok(case::NAMES.to_vec());
+        return Ok(case::suite());
     }
     only.iter()
-        .map(|name| {
-            case::NAMES
-                .into_iter()
-                .find(|known| known == name)
-                .ok_or_else(|| format!("unknown case {name}"))
-        })
+        .map(|name| case::known(name).ok_or_else(|| format!("unknown case {name}")))
         .collect()
 }
 
@@ -71,7 +64,7 @@ async fn trials(mut run: Run, cases: Vec<&'static str>) -> Result<(Run, bool), S
     let run = Arc::new(run);
     let mut set = JoinSet::new();
     for case in cases {
-        for store in STORES {
+        for &store in case::stores(case) {
             let run = Arc::clone(&run);
             set.spawn(async move { judge(&run, case, store).await });
         }

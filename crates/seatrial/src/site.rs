@@ -182,7 +182,7 @@ impl<'a> Site<'a> {
 
     pub async fn sql(&self, text: &str) -> Result<String, String> {
         let output = match self.store {
-            Store::Pg => crate::pg::psql(self.run, self.case, text).await?,
+            Store::Pg => crate::pg::session(self.run, self.case, "seatrial", text).await?,
             Store::Lite => {
                 let spec = Spec {
                     image: self.run.pins.images.sqlite.clone(),
@@ -199,6 +199,16 @@ impl<'a> Site<'a> {
             true => Ok(output.text()),
             false => Err(format!("{} sql: {}", self.store.name(), output.err)),
         }
+    }
+
+    pub async fn session(&self, app: &str, sql: &str) -> Result<(), String> {
+        crate::pg::session(self.run, self.case, app, sql)
+            .await
+            .map(drop)
+    }
+
+    pub fn case(&self) -> &str {
+        self.case
     }
 
     pub fn store(&self) -> Store {

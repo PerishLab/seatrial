@@ -1,16 +1,40 @@
 mod estate;
 mod life;
+mod race;
 mod rows;
 
 use serde_json::{Value, json};
 
 use crate::probe::Reply;
-use crate::site::Site;
+use crate::site::{Site, Store};
 
 pub const NAMES: [&str; 15] = [
     "again", "health", "sudo", "restart", "unique", "portable", "scoped", "spare", "lease",
     "cascade", "batch", "pulse", "foreign", "revived", "vetoed",
 ];
+
+pub const RACES: [&str; 4] = ["rival", "lapse", "dangle", "orphan"];
+
+pub const OPEN: [&str; 3] = ["lapse", "dangle", "orphan"];
+
+pub fn known(name: &str) -> Option<&'static str> {
+    NAMES.into_iter().chain(RACES).find(|known| *known == name)
+}
+
+pub fn suite() -> Vec<&'static str> {
+    NAMES
+        .into_iter()
+        .chain(RACES)
+        .filter(|name| !OPEN.contains(name))
+        .collect()
+}
+
+pub fn stores(name: &str) -> &'static [Store] {
+    match RACES.contains(&name) {
+        true => &[Store::Pg],
+        false => &[Store::Lite, Store::Pg],
+    }
+}
 
 pub(crate) fn ensure(held: bool, claim: &str) -> Result<(), String> {
     if held { Ok(()) } else { Err(claim.to_string()) }
@@ -49,6 +73,10 @@ impl Site<'_> {
             "foreign" => self.foreign().await,
             "revived" => self.revived().await,
             "vetoed" => self.vetoed().await,
+            "rival" => self.rival().await,
+            "lapse" => self.lapse().await,
+            "dangle" => self.dangle().await,
+            "orphan" => self.orphan().await,
             other => Err(format!("unknown case {other}")),
         }
     }

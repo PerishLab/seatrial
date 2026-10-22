@@ -62,11 +62,14 @@ pub fn url(run: &Run, case: &str) -> String {
     )
 }
 
-pub async fn psql(run: &Run, case: &str, sql: &str) -> Result<Output, String> {
+pub async fn session(run: &Run, case: &str, app: &str, sql: &str) -> Result<Output, String> {
     let host = run.lane.host(NAME);
     let db = format!("trial_{case}");
+    let app = format!("PGAPPNAME={app}");
     let args = words(&[
         "exec",
+        "--env",
+        &app,
         &host,
         "psql",
         "-U",

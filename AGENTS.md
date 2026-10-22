@@ -29,6 +29,9 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 - A case may reach into its own store only with the store's own tool, `psql`
   in the Postgres container or `sqlite3` from the pinned SQLite image, and
   only to sabotage or observe the store the way an operator could.
+- A case asserts the behavior a product promises, never the behavior it
+  has. A case that a product breaks names its Bug in the README and is listed
+  in `OPEN`, which keeps it out of the default suite until the Bug is fixed.
 - Guard proves the runner's source only and never runs the suite. In phase 1
   a run gates nothing; its output is manual evidence on the Issues that use
   it.
