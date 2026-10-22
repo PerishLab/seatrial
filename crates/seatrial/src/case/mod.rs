@@ -1,4 +1,5 @@
 mod estate;
+mod ghost;
 mod life;
 mod race;
 mod refs;
@@ -10,14 +11,14 @@ use serde_json::{Value, json};
 use crate::probe::Reply;
 use crate::site::{Site, Store};
 
-pub const NAMES: [&str; 17] = [
+pub const NAMES: [&str; 18] = [
     "again", "health", "sudo", "restart", "unique", "portable", "scoped", "spare", "lease",
-    "cascade", "batch", "pulse", "foreign", "revived", "vetoed", "outlive", "linger",
+    "cascade", "batch", "pulse", "foreign", "revived", "vetoed", "outlive", "linger", "ghost",
 ];
 
 pub const RACES: [&str; 6] = ["rival", "lapse", "dangle", "orphan", "cling", "adopt"];
 
-pub const OPEN: [&str; 1] = ["lapse"];
+pub const OPEN: [&str; 2] = ["lapse", "ghost"];
 
 pub fn known(name: &str) -> Option<&'static str> {
     NAMES.into_iter().chain(RACES).find(|known| *known == name)
@@ -77,6 +78,7 @@ impl Site<'_> {
             "vetoed" => self.vetoed().await,
             "outlive" => self.outlive().await,
             "linger" => self.linger().await,
+            "ghost" => self.ghost().await,
             "rival" => self.rival().await,
             "lapse" => self.lapse().await,
             "dangle" => self.dangle().await,
