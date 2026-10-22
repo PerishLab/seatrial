@@ -11,16 +11,16 @@ const HOLDER: &str = "seatrial-hold";
 const SEEN: &str = "SELECT string_agg(concat_ws(':', application_name, wait_event_type, wait_event, state, left(regexp_replace(query, '\\s+', ' ', 'g'), 90)), ' | ') FROM pg_stat_activity WHERE datname = current_database()";
 const WAIT: Duration = Duration::from_secs(8);
 
-fn live(list: &[Value], field: &str, value: &Value) -> usize {
+pub(super) fn live(list: &[Value], field: &str, value: &Value) -> usize {
     list.iter().filter(|row| &row[field] == value).count()
 }
 
-fn told(first: &Reply, second: &Reply) -> String {
+pub(super) fn told(first: &Reply, second: &Reply) -> String {
     format!("answers {} then {}", first.status, second.status)
 }
 
 impl Site<'_> {
-    async fn pair(&self) -> Result<(Client<'_>, Client<'_>), String> {
+    pub(super) async fn pair(&self) -> Result<(Client<'_>, Client<'_>), String> {
         let auth = self.sealed().await?;
         let near = self.client(Some(auth.clone()));
         let seed = near.post("/course", course("SEED", "clock")).await?;
@@ -55,7 +55,7 @@ impl Site<'_> {
         self.session(HOLDER, sql).await
     }
 
-    async fn race<A, B>(&self, first: A, second: B) -> Result<(Reply, Reply), String>
+    pub(super) async fn race<A, B>(&self, first: A, second: B) -> Result<(Reply, Reply), String>
     where
         A: Future<Output = Result<Reply, String>>,
         B: Future<Output = Result<Reply, String>>,
@@ -127,63 +127,6 @@ impl Site<'_> {
         ensure(
             held <= 1,
             &format!("{held} live courses hold X2; {}", told(&first, &second)),
-        )
-    }
-
-    pub async fn dangle(&self) -> Result<(), String> {
-        let (near, far) = self.pair().await?;
-        let made = near.post("/course", course("D1", "target")).await?;
-        expect(made.status, 201, "create course")?;
-        let algo = made.id()?;
-        let ada = near
-            .post("/student", json!({ "no": "S01", "name": "ada" }))
-            .await?;
-        expect(ada.status, 201, "create student")?;
-        let ada = ada.id()?;
-        let (first, second) = self
-            .race(
-                near.delete(&format!("/course/{algo}")),
-                far.post(
-                    &format!("/student/{ada}/courses"),
-                    json!({ "right": algo, "grade": "A" }),
-                ),
-            )
-            .await?;
-        let ended = near.get(&format!("/course/{algo}")).await?.status == 404;
-        let count = near
-            .query(&format!(r#"from Student where courses has "{algo}" count"#))
-            .await?
-            .json()?["count"]
-            .clone();
-        ensure(
-            !(ended && count != 0),
-            &format!(
-                "{count} students still take ended course {algo}; {}",
-                told(&first, &second)
-            ),
-        )
-    }
-
-    pub async fn orphan(&self) -> Result<(), String> {
-        let (near, far) = self.pair().await?;
-        let book = near.post("/ledger", json!({ "tag": "O1" })).await?;
-        expect(book.status, 201, "create ledger")?;
-        let book = book.id()?;
-        let (first, second) = self
-            .race(
-                near.delete(&format!("/ledger/{book}")),
-                far.post("/entry", json!({ "note": "late", "ledger": book })),
-            )
-            .await?;
-        let ended = near.get(&format!("/ledger/{book}")).await?.status == 404;
-        let entries = rows(&near.get("/entry").await?)?;
-        let held = live(&entries, "ledger", &json!(book));
-        ensure(
-            !(ended && held > 0),
-            &format!(
-                "{held} live entries under ended ledger {book}; {}",
-                told(&first, &second)
-            ),
         )
     }
 }

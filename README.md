@@ -73,16 +73,22 @@ seen waiting, and the holder is terminated once both are waiting:
 - `rival`: two processes put the same unique value; one answers 409.
 - `lapse`: one process puts a unique value while the other edits a leased
   row to it. Broken, PerishLab/keel#68.
-- `dangle`: one process ends a course while the other ties a student to it.
-  Broken, PerishLab/keel#69.
-- `orphan`: one process ends a ledger while the other puts an entry under it.
-  Broken, PerishLab/keel#69.
+- `dangle`: one process ends a course while the other ties a student to it;
+  no live tie to the ended course remains. Fixed in Keel v0.20.2,
+  PerishLab/keel#69.
+- `cling`: the same pair in the other order, the tie first and the end
+  second.
+- `orphan`: one process ends a ledger while the other puts an entry under it;
+  no live entry under the ended ledger remains. Fixed in Keel v0.20.2,
+  PerishLab/keel#69.
+- `adopt`: the same pair in the other order, the entry first and the end
+  second.
 
 A broken case asserts the invariant, so it fails until its Bug is fixed. It
 is left out of the default suite and runs by name:
 
 ```sh
-cargo run --release -- run --case lapse --case dangle --case orphan
+cargo run --release -- run --case lapse
 ```
 
 In phase 1 a run gates nothing; its output is evidence on the Issues that
