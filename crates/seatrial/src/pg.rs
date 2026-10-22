@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use crate::docker::{call, must, words};
+use crate::docker::{Output, call, must, words};
 use crate::lane::{Lane, Spec};
 use crate::site::Run;
 
@@ -60,4 +60,23 @@ pub fn url(run: &Run, case: &str) -> String {
         "postgres://postgres:{}@{host}:5432/trial_{case}",
         run.secret
     )
+}
+
+pub async fn psql(run: &Run, case: &str, sql: &str) -> Result<Output, String> {
+    let host = run.lane.host(NAME);
+    let db = format!("trial_{case}");
+    let args = words(&[
+        "exec",
+        &host,
+        "psql",
+        "-U",
+        "postgres",
+        "-h",
+        "127.0.0.1",
+        "-d",
+        &db,
+        "-tAc",
+        sql,
+    ]);
+    call(&args).await
 }

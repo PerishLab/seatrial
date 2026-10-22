@@ -20,6 +20,7 @@ pub struct Keel {
 pub struct Images {
     pub postgres: String,
     pub probe: String,
+    pub sqlite: String,
 }
 
 impl Keel {

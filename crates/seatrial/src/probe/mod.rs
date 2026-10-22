@@ -1,3 +1,7 @@
+mod client;
+
+pub use client::Client;
+
 use crate::docker::{call, must, words};
 use crate::lane::{Lane, Spec};
 

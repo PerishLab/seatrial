@@ -26,6 +26,9 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   removes everything labelled with the lane and reports anything left.
 - Each case gets a store of its own: a fresh volume, SQLite file or Postgres
   database. A case never resets shared state. Cases run in parallel.
+- A case may reach into its own store only with the store's own tool, `psql`
+  in the Postgres container or `sqlite3` from the pinned SQLite image, and
+  only to sabotage or observe the store the way an operator could.
 - Guard proves the runner's source only and never runs the suite. In phase 1
   a run gates nothing; its output is manual evidence on the Issues that use
   it.
@@ -36,4 +39,5 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 - `crates/seatrial` — the runner: lane provisioning, the probe, artifact
   fetching, and the cases.
 - `seatrial.toml` — what a run trials.
+- `models` — the canonical Keel manifests the cases serve.
 - `.runseal` — committed inert Runseal resources.

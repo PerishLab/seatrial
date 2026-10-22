@@ -14,6 +14,7 @@ pub struct Spec {
     pub name: String,
     pub image: String,
     pub entry: Option<String>,
+    pub user: Option<String>,
     pub env: Vec<String>,
     pub mounts: Vec<String>,
     pub args: Vec<String>,
@@ -66,6 +67,9 @@ impl Lane {
         }
         if let Some(entry) = &spec.entry {
             args.extend(["--entrypoint".into(), entry.clone()]);
+        }
+        if let Some(user) = &spec.user {
+            args.extend(["--user".into(), user.clone()]);
         }
         for pair in &spec.env {
             args.extend(["--env".into(), pair.clone()]);
