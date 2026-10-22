@@ -3,15 +3,16 @@ mod life;
 mod race;
 mod refs;
 mod rows;
+mod tenure;
 
 use serde_json::{Value, json};
 
 use crate::probe::Reply;
 use crate::site::{Site, Store};
 
-pub const NAMES: [&str; 15] = [
+pub const NAMES: [&str; 17] = [
     "again", "health", "sudo", "restart", "unique", "portable", "scoped", "spare", "lease",
-    "cascade", "batch", "pulse", "foreign", "revived", "vetoed",
+    "cascade", "batch", "pulse", "foreign", "revived", "vetoed", "outlive", "linger",
 ];
 
 pub const RACES: [&str; 6] = ["rival", "lapse", "dangle", "orphan", "cling", "adopt"];
@@ -74,6 +75,8 @@ impl Site<'_> {
             "foreign" => self.foreign().await,
             "revived" => self.revived().await,
             "vetoed" => self.vetoed().await,
+            "outlive" => self.outlive().await,
+            "linger" => self.linger().await,
             "rival" => self.rival().await,
             "lapse" => self.lapse().await,
             "dangle" => self.dangle().await,
