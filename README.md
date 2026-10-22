@@ -50,6 +50,10 @@ The parity cases prove that the two adapters behave the same
 - `spare`: an optional field reads as absent or held.
 - `lease`: a lease in the past is refused, and a leased row disappears when
   its lease ends.
+- `outlive`: an entry put under a leased ledger is refused, so no live entry
+  remains once the lease ends.
+- `linger`: a tie to a leased course is refused, so no live tie remains once
+  the lease ends.
 - `cascade`: ending a root ledger ends its entries.
 - `batch`: a batch with a failing deed commits nothing; a good one answers its
   ids and keeps every deed.
