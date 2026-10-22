@@ -1,0 +1,34 @@
+
+[layout]
+
+[[layout.seat]]
+path = "crates/*"
+anchor = ["Cargo.toml"]
+note = "The seatrial runner crate."
+
+[[layout.seat]]
+path = ".runseal"
+note = "Committed inert Runseal resources."
+
+[[layout.file]]
+name = ["README.md"]
+note = "Public introduction."
+
+[[layout.file]]
+name = ["Cargo.toml", "Cargo.lock"]
+note = "Rust workspace anchors."
+
+[[layout.file]]
+name = ["seatrial.toml"]
+note = "The released versions and third-party images a run trials, pinned."
+
+[[layout.seat]]
+path = "models"
+note = "Keel manifests the cases seal, in canonical form."
+
+[[layout.seat]]
+path = ".cargo"
+note = "Cargo registry configuration."
+
+[identity]
+ns = "seatrial"
