@@ -56,7 +56,7 @@ The parity cases prove that the two adapters behave the same
   the lease ends.
 - `ghost`: a tie whose course has ended is gone from every query path, as
   from `link`. The ended course is planted with the store's own tool, since
-  no API path leaves such a tie since Keel v0.20.2. Broken,
+  no API path leaves such a tie since Keel v0.20.2. Fixed in Keel v0.20.3,
   PerishLab/keel#73.
 - `cascade`: ending a root ledger ends its entries.
 - `batch`: a batch with a failing deed commits nothing; a good one answers its
@@ -96,7 +96,7 @@ A broken case asserts the invariant, so it fails until its Bug is fixed. It
 is left out of the default suite and runs by name:
 
 ```sh
-cargo run --release -- run --case lapse --case ghost
+cargo run --release -- run --case lapse
 ```
 
 In phase 1 a run gates nothing; its output is evidence on the Issues that

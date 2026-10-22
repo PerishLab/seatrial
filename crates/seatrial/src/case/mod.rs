@@ -18,7 +18,7 @@ pub const NAMES: [&str; 18] = [
 
 pub const RACES: [&str; 6] = ["rival", "lapse", "dangle", "orphan", "cling", "adopt"];
 
-pub const OPEN: [&str; 2] = ["lapse", "ghost"];
+pub const OPEN: [&str; 1] = ["lapse"];
 
 pub fn known(name: &str) -> Option<&'static str> {
     NAMES.into_iter().chain(RACES).find(|known| *known == name)
