@@ -13,9 +13,12 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 - Cases are black-box. They drive executables only through HTTP, CLI, wire
   protocols and files an executable is documented to read. Seatrial never
   depends on a product crate.
-- A run trials released artifacts pinned in `seatrial.toml`: a product's
-  version, release authority and image, and third-party images by exact tag.
-  A downloaded artifact is checked against its seal before it runs.
+- `seatrial.toml` names what a run trials. A first-party product is followed
+  by channel, never pinned: the run resolves the channel pointer at
+  `<authority>/v1/channels/<channel>.json` and records the version, commit
+  and digests it actually ran. Third-party images are pinned by exact tag.
+  The pointer's seal and every downloaded artifact are checked against their
+  digests before anything runs.
 - Every run is one lane, `st<hex>`. Each container, network and volume carries
   `perish.owner=seatrial` and `perish.lane=<ns>`. No host port is published:
   a case reaches an executable from the in-lane probe, and an executable a
@@ -32,5 +35,5 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 
 - `crates/seatrial` — the runner: lane provisioning, the probe, artifact
   fetching, and the cases.
-- `seatrial.toml` — the pins a run trials.
+- `seatrial.toml` — what a run trials.
 - `.runseal` — committed inert Runseal resources.

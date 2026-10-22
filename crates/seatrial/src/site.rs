@@ -16,6 +16,7 @@ pub struct Run {
     pub keel: PathBuf,
     pub model: PathBuf,
     pub source: PathBuf,
+    pub image: String,
 }
 
 #[derive(Clone, Copy)]
@@ -73,7 +74,7 @@ impl<'a> Site<'a> {
         let keel = format!("{}:/opt/keel:ro", self.run.keel.display());
         let model = format!("{}:/opt/model.json:ro", self.run.model.display());
         Spec {
-            image: self.run.pins.keel.tag(),
+            image: self.run.image.clone(),
             entry: Some(entry.into()),
             env: vec![format!("KEEL_STORE={}", self.url())],
             mounts: vec![format!("{}:{ESTATE}", self.volume), keel, model],

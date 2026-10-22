@@ -29,6 +29,7 @@ pub async fn run(pins: &Path, only: &[String]) -> Result<bool, String> {
         keel: dir.join("keel"),
         model: dir.join("model.json"),
         source: pins.keel.model.clone(),
+        image: String::new(),
         lane,
         pins,
         secret,
@@ -62,8 +63,8 @@ fn select(only: &[String]) -> Result<Vec<&'static str>, String> {
         .collect()
 }
 
-async fn trials(run: Run, cases: Vec<&'static str>) -> Result<(Run, bool), String> {
-    if let Err(error) = provision(&run).await {
+async fn trials(mut run: Run, cases: Vec<&'static str>) -> Result<(Run, bool), String> {
+    if let Err(error) = provision(&mut run).await {
         let _ = run.lane.close().await;
         return Err(error);
     }
@@ -83,23 +84,31 @@ async fn trials(run: Run, cases: Vec<&'static str>) -> Result<(Run, bool), Strin
     Ok((run, passed))
 }
 
-async fn provision(run: &Run) -> Result<(), String> {
-    let images = [
-        run.pins.keel.tag(),
-        run.pins.images.postgres.clone(),
-        run.pins.images.probe.clone(),
-    ];
-    for image in &images {
+async fn provision(run: &mut Run) -> Result<(), String> {
+    for image in [&run.pins.images.postgres, &run.pins.images.probe] {
         must(&words(&["pull", "--quiet", image])).await?;
     }
     probe::start(&run.lane, &run.pins.images.probe).await?;
     pg::start(&run.lane, &run.pins.images.postgres, &run.secret).await?;
-    fetch::keel(run).await?;
+    let release = fetch::keel(run).await?;
+    let version = release.version.trim_start_matches('v');
+    run.image = format!("{}:{version}", run.pins.keel.image);
+    must(&words(&["pull", "--quiet", &run.image])).await?;
+    let format = "{{index .RepoDigests 0}}";
+    let digest = must(&words(&[
+        "image", "inspect", "--format", format, &run.image,
+    ]))
+    .await?;
+    let head = release.commit.get(..12).unwrap_or(&release.commit);
     println!(
-        "keel    v{} ({}, CLI digest checked against its seal)",
-        run.pins.keel.version,
-        run.pins.keel.tag()
+        "keel    {} at {head}, {} channel",
+        release.version, run.pins.keel.channel
     );
+    println!(
+        "cli     sha256:{} checked against the seal",
+        release.archive
+    );
+    println!("image   {}", digest.text());
     Ok(())
 }
 

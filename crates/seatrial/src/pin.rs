@@ -10,7 +10,7 @@ pub struct Pins {
 
 #[derive(Deserialize)]
 pub struct Keel {
-    pub version: String,
+    pub channel: String,
     pub authority: String,
     pub image: String,
     pub model: PathBuf,
@@ -23,13 +23,9 @@ pub struct Images {
 }
 
 impl Keel {
-    pub fn tag(&self) -> String {
-        format!("{}:{}", self.image, self.version)
-    }
-
-    pub fn seal(&self) -> String {
+    pub fn pointer(&self) -> String {
         let root = self.authority.trim_end_matches('/');
-        format!("{root}/v1/releases/stable/v{}/seal.json", self.version)
+        format!("{root}/v1/channels/{}.json", self.channel)
     }
 }
 

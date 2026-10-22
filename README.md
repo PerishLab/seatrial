@@ -18,8 +18,11 @@ cargo run --release -- run
 cargo run --release -- run --case sudo --case restart
 ```
 
-`seatrial.toml` pins what a run trials: the released Keel version, and the
-Postgres and probe images by exact tag.
+`seatrial.toml` names what a run trials. Keel is followed by channel: each
+run resolves Keel's current stable from its release authority's stable
+pointer, the one `manage.sh` reads, and prints the version, commit, CLI
+archive digest and image digest it actually ran. The Postgres and probe
+images are third-party and stay pinned by exact tag.
 
 ## Cases
 

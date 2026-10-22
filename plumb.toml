@@ -20,7 +20,7 @@ note = "Rust workspace anchors."
 
 [[layout.file]]
 name = ["seatrial.toml"]
-note = "The released versions and third-party images a run trials, pinned."
+note = "What a run trials: first-party products by channel, third-party images by exact tag."
 
 [[layout.seat]]
 path = "models"
