@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
+use serde_json::Value;
+
 use crate::docker::{must, words};
 use crate::lane::{Lane, Spec};
 use crate::pin::Pins;
-use crate::probe::{self, Ask, Reply};
+use crate::probe::Client;
+use crate::probe::Reply;
 
 const ESTATE: &str = "/keel/.local";
 const WAIT: Duration = Duration::from_secs(60);
@@ -128,55 +131,90 @@ impl<'a> Site<'a> {
         Ok(output.text())
     }
 
+    pub fn client(&self, auth: Option<String>) -> Client<'_> {
+        Client {
+            lane: &self.run.lane,
+            base: self.base(),
+            auth,
+        }
+    }
+
     pub async fn serve(&self) -> Result<(), String> {
+        self.launch(&self.component()).await?;
+        self.ready(&self.client(None)).await
+    }
+
+    pub async fn twin(&self, auth: String) -> Result<Client<'_>, String> {
+        let component = format!("{}-far", self.component());
+        self.launch(&component).await?;
+        let far = Client {
+            lane: &self.run.lane,
+            base: format!("http://{}:8080", self.run.lane.host(&component)),
+            auth: Some(auth),
+        };
+        self.ready(&far).await?;
+        Ok(far)
+    }
+
+    async fn launch(&self, component: &str) -> Result<(), String> {
         let mut spec = self.spec("keel-api", Vec::new());
-        spec.name = self.run.lane.host(&self.component());
+        spec.name = self.run.lane.host(component);
         spec.mounts.truncate(1);
-        self.run.lane.start(&spec).await?;
-        self.ready().await
+        self.run.lane.start(&spec).await
     }
 
     pub async fn restart(&self) -> Result<(), String> {
         let name = self.run.lane.host(&self.component());
         must(&words(&["restart", &name])).await?;
-        self.ready().await
+        self.ready(&self.client(None)).await
     }
 
-    async fn ready(&self) -> Result<(), String> {
+    async fn ready(&self, client: &Client<'_>) -> Result<(), String> {
         let start = Instant::now();
         while start.elapsed() < WAIT {
-            if self.get("/health", None).await?.status == 200 {
+            if client.get("/health").await?.status == 200 {
                 return Ok(());
             }
             tokio::time::sleep(Duration::from_millis(250)).await;
         }
-        Err(format!("{} never became healthy", self.component()))
+        Err(format!("{} never became healthy", client.base))
+    }
+
+    pub async fn sql(&self, text: &str) -> Result<String, String> {
+        let output = match self.store {
+            Store::Pg => crate::pg::psql(self.run, self.case, text).await?,
+            Store::Lite => {
+                let spec = Spec {
+                    image: self.run.pins.images.sqlite.clone(),
+                    entry: Some("sqlite3".into()),
+                    user: Some("10001:10001".into()),
+                    mounts: vec![format!("{}:{ESTATE}", self.volume)],
+                    args: words(&[&format!("{ESTATE}/keel.db"), text]),
+                    ..Spec::default()
+                };
+                self.run.lane.once(&spec).await?
+            }
+        };
+        match output.ok {
+            true => Ok(output.text()),
+            false => Err(format!("{} sql: {}", self.store.name(), output.err)),
+        }
+    }
+
+    pub fn store(&self) -> Store {
+        self.store
     }
 
     pub async fn get(&self, path: &str, auth: Option<String>) -> Result<Reply, String> {
-        let url = format!("{}{path}", self.base());
-        let ask = Ask {
-            method: "GET",
-            url,
-            auth,
-            body: None,
-        };
-        probe::send(&self.run.lane, ask).await
+        self.client(auth).get(path).await
     }
 
     pub async fn post(
         &self,
         path: &str,
         auth: Option<String>,
-        body: String,
+        body: Value,
     ) -> Result<Reply, String> {
-        let url = format!("{}{path}", self.base());
-        let ask = Ask {
-            method: "POST",
-            url,
-            auth,
-            body: Some(body),
-        };
-        probe::send(&self.run.lane, ask).await
+        self.client(auth).post(path, body).await
     }
 }

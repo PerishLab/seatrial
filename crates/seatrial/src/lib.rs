@@ -85,7 +85,8 @@ async fn trials(mut run: Run, cases: Vec<&'static str>) -> Result<(Run, bool), S
 }
 
 async fn provision(run: &mut Run) -> Result<(), String> {
-    for image in [&run.pins.images.postgres, &run.pins.images.probe] {
+    let images = &run.pins.images;
+    for image in [&images.postgres, &images.probe, &images.sqlite] {
         must(&words(&["pull", "--quiet", image])).await?;
     }
     probe::start(&run.lane, &run.pins.images.probe).await?;

@@ -1,19 +1,34 @@
+mod estate;
+mod life;
+mod rows;
+
 use serde_json::{Value, json};
 
+use crate::probe::Reply;
 use crate::site::Site;
 
-pub const NAMES: [&str; 5] = ["again", "health", "sudo", "restart", "unique"];
+pub const NAMES: [&str; 15] = [
+    "again", "health", "sudo", "restart", "unique", "portable", "scoped", "spare", "lease",
+    "cascade", "batch", "pulse", "foreign", "revived", "vetoed",
+];
 
-fn ensure(held: bool, claim: &str) -> Result<(), String> {
+pub(crate) fn ensure(held: bool, claim: &str) -> Result<(), String> {
     if held { Ok(()) } else { Err(claim.to_string()) }
 }
 
-fn expect(status: u16, want: u16, claim: &str) -> Result<(), String> {
+pub(crate) fn expect(status: u16, want: u16, claim: &str) -> Result<(), String> {
     ensure(status == want, &format!("{claim}: {status}, wanted {want}"))
 }
 
-fn course(code: &str, title: &str) -> String {
-    json!({ "code": code, "title": title }).to_string()
+pub(crate) fn course(code: &str, title: &str) -> Value {
+    json!({ "code": code, "title": title })
+}
+
+pub(crate) fn rows(reply: &Reply) -> Result<Vec<Value>, String> {
+    match reply.json()? {
+        Value::Array(rows) => Ok(rows),
+        other => Err(format!("wanted rows, got {other}")),
+    }
 }
 
 impl Site<'_> {
@@ -24,11 +39,21 @@ impl Site<'_> {
             "sudo" => self.sudo().await,
             "restart" => self.reopen().await,
             "unique" => self.unique().await,
+            "portable" => self.portable().await,
+            "scoped" => self.scoped().await,
+            "spare" => self.spare().await,
+            "lease" => self.lease().await,
+            "cascade" => self.cascade().await,
+            "batch" => self.batch().await,
+            "pulse" => self.pulse().await,
+            "foreign" => self.foreign().await,
+            "revived" => self.revived().await,
+            "vetoed" => self.vetoed().await,
             other => Err(format!("unknown case {other}")),
         }
     }
 
-    async fn sealed(&self) -> Result<String, String> {
+    pub(crate) async fn sealed(&self) -> Result<String, String> {
         ensure(self.bootstrap("custody").await?, "bootstrap was refused")?;
         self.serve().await?;
         Ok(format!("sudo {}", self.token("custody").await?))
