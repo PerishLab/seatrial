@@ -1,6 +1,10 @@
-use serde_json::Value;
+use std::time::{Duration, Instant};
+
+use serde_json::{Value, json};
 
 use crate::case::{course, ensure, expect, rows};
+use crate::docker::{must, words};
+use crate::probe::Reply;
 use crate::site::{Site, Store};
 
 impl Site<'_> {
@@ -95,5 +99,76 @@ impl Site<'_> {
         let list = sudo.get("/course").await?;
         expect(list.status, 200, "list after the veto")?;
         ensure(rows(&list)?.is_empty(), "write committed without its pulse")
+    }
+}
+
+const WAIT: Duration = Duration::from_secs(20);
+
+fn down(reply: &Reply, what: &str) -> Result<(), String> {
+    expect(reply.status, 503, what)?;
+    ensure(
+        reply
+            .json()
+            .is_ok_and(|body| body == json!({ "error": "store unavailable" })),
+        &format!("{what} answers {}", reply.body),
+    )
+}
+
+impl Site<'_> {
+    async fn gate(&self, open: bool) -> Result<(), String> {
+        let db = format!("trial_{}", self.case());
+        let host = self.run().lane.host(crate::pg::NAME);
+        let alter = format!("ALTER DATABASE {db} ALLOW_CONNECTIONS {open}");
+        let cut = format!(
+            "SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity WHERE datname = '{db}'"
+        );
+        for sql in [alter, cut] {
+            let args = [
+                "exec",
+                &host,
+                "psql",
+                "-U",
+                "postgres",
+                "-h",
+                "127.0.0.1",
+                "-d",
+                "postgres",
+                "-tAc",
+                &sql,
+            ];
+            must(&words(&args)).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn outage(&self) -> Result<(), String> {
+        let sudo = self.admin().await?;
+        expect(
+            sudo.post("/course", course("O1", "kept")).await?.status,
+            201,
+            "create course",
+        )?;
+        self.gate(false).await?;
+        let first = sudo.get("/course").await?;
+        let second = sudo.get("/course").await?;
+        let health = sudo.get("/health").await?;
+        println!(
+            "outage  reads answer {} then {}, health {}",
+            first.status, second.status, health.status
+        );
+        down(&first, "a read as the store drops")?;
+        down(&second, "a read while the store refuses connections")?;
+        down(&health, "health while the store refuses connections")?;
+        self.gate(true).await?;
+        let start = Instant::now();
+        while start.elapsed() < WAIT {
+            if sudo.get("/health").await?.status == 200 {
+                let list = sudo.get("/course").await?;
+                expect(list.status, 200, "a read once the store is back")?;
+                return ensure(list.body.contains("\"O1\""), "the course was lost");
+            }
+            tokio::time::sleep(Duration::from_millis(250)).await;
+        }
+        Err("health never recovered once the store was back".into())
     }
 }

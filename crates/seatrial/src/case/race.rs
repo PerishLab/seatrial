@@ -109,24 +109,48 @@ impl Site<'_> {
         )
     }
 
-    pub async fn lapse(&self) -> Result<(), String> {
-        let (near, far) = self.pair().await?;
-        let made = near.post("/course", course("Y1", "leased")).await?;
+    async fn leased(&self, sudo: &Client<'_>, code: &str) -> Result<i64, String> {
+        let made = sudo.post("/course", course(code, "leased")).await?;
         expect(made.status, 201, "create leased course")?;
         let id = made.id()?;
         let until = json!([{ "verb": "end", "unit": "Course", "id": id, "at": 4_102_444_800_i64 }]);
-        expect(near.batch(until).await?.status, 200, "lease")?;
+        expect(sudo.batch(until).await?.status, 200, "lease")?;
+        Ok(id)
+    }
+
+    pub async fn lapse(&self) -> Result<(), String> {
+        let (near, far) = self.pair().await?;
+        expect(
+            near.post("/course", course("Y0", "held")).await?.status,
+            201,
+            "create held course",
+        )?;
+        self.leased(&near, "Y1").await?;
+        let heir = near.post("/course", course("Y1", "heir")).await?;
+        expect(
+            heir.status,
+            201,
+            "a put of a value only a leased course holds",
+        )?;
+        let twin = near.post("/course", course("Y0", "twin")).await?;
+        expect(
+            twin.status,
+            409,
+            "a put of a value a course without expiry holds",
+        )?;
+        let id = self.leased(&near, "Y2").await?;
         let (first, second) = self
             .race(
                 near.post("/course", course("X2", "near")),
                 far.patch(&format!("/course/{id}"), json!({ "code": "X2" })),
             )
             .await?;
-        let list = rows(&near.get("/course").await?)?;
-        let held = live(&list, "code", &json!("X2"));
         ensure(
-            held <= 1,
-            &format!("{held} live courses hold X2; {}", told(&first, &second)),
+            first.status == 201 && second.status == 200,
+            &format!(
+                "a leased course held X2 across processes; {}",
+                told(&first, &second)
+            ),
         )
     }
 }
