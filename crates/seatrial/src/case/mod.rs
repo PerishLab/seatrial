@@ -1,3 +1,4 @@
+mod blank;
 mod estate;
 mod ghost;
 mod life;
@@ -11,14 +12,17 @@ use serde_json::{Value, json};
 use crate::probe::Reply;
 use crate::site::{Site, Store};
 
-pub const NAMES: [&str; 18] = [
+pub const NAMES: [&str; 19] = [
     "again", "health", "sudo", "restart", "unique", "portable", "scoped", "spare", "lease",
     "cascade", "batch", "pulse", "foreign", "revived", "vetoed", "outlive", "linger", "ghost",
+    "blank",
 ];
 
-pub const RACES: [&str; 6] = ["rival", "lapse", "dangle", "orphan", "cling", "adopt"];
+pub const RACES: [&str; 8] = [
+    "rival", "lapse", "dangle", "orphan", "cling", "adopt", "void", "kin",
+];
 
-pub const OPEN: [&str; 1] = ["lapse"];
+pub const OPEN: [&str; 2] = ["lapse", "void"];
 
 pub fn known(name: &str) -> Option<&'static str> {
     NAMES.into_iter().chain(RACES).find(|known| *known == name)
@@ -79,12 +83,15 @@ impl Site<'_> {
             "outlive" => self.outlive().await,
             "linger" => self.linger().await,
             "ghost" => self.ghost().await,
+            "blank" => self.blank().await,
             "rival" => self.rival().await,
             "lapse" => self.lapse().await,
             "dangle" => self.dangle().await,
             "orphan" => self.orphan().await,
             "cling" => self.cling().await,
             "adopt" => self.adopt().await,
+            "void" => self.void().await,
+            "kin" => self.kin().await,
             other => Err(format!("unknown case {other}")),
         }
     }

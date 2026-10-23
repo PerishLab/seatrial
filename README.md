@@ -71,6 +71,9 @@ The parity cases prove that the two adapters behave the same
   commits nothing. The rejection is planted with the store's own tool: a
   `CHECK (false) NOT VALID` constraint through `psql`, and an aborting
   trigger through `sqlite3`.
+- `blank`: a badge's `label` is unique per `kind`, and badges without a kind
+  share one scope: a second `B1` without a kind is a 409, and `B1` of another
+  kind is a 201.
 
 The race cases run on Postgres only, with two `keel-api` processes on one
 estate (PerishLab/seatrial#7). A third Postgres session holds the `@clock`
@@ -91,12 +94,17 @@ seen waiting, and the holder is terminated once both are waiting:
   PerishLab/keel#69.
 - `adopt`: the same pair in the other order, the entry first and the end
   second.
+- `void`: one process puts a badge without a kind while the other edits
+  another badge without a kind to the same label. Broken,
+  PerishLab/seatrial#17: a unique index treats null scopes as distinct.
+- `kin`: the same pair with both badges of one kind; one live badge holds
+  the label.
 
 A broken case asserts the invariant, so it fails until its Bug is fixed. It
 is left out of the default suite and runs by name:
 
 ```sh
-cargo run --release -- run --case lapse
+cargo run --release -- run --case lapse --case void
 ```
 
 In phase 1 a run gates nothing; its output is evidence on the Issues that
