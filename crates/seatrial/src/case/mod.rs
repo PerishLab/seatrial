@@ -1,4 +1,5 @@
 mod blank;
+mod closed;
 mod estate;
 mod ghost;
 mod life;
@@ -12,32 +13,39 @@ use serde_json::{Value, json};
 use crate::probe::Reply;
 use crate::site::{Site, Store};
 
-pub const NAMES: [&str; 19] = [
+pub const NAMES: [&str; 20] = [
     "again", "health", "sudo", "restart", "unique", "portable", "scoped", "spare", "lease",
     "cascade", "batch", "pulse", "foreign", "revived", "vetoed", "outlive", "linger", "ghost",
-    "blank",
+    "blank", "closed",
 ];
 
-pub const RACES: [&str; 8] = [
-    "rival", "lapse", "dangle", "orphan", "cling", "adopt", "void", "kin",
+pub const RACES: [&str; 7] = [
+    "rival", "lapse", "dangle", "orphan", "cling", "adopt", "kin",
 ];
 
-pub const OPEN: [&str; 2] = ["lapse", "void"];
+pub const STORES: [&str; 1] = ["outage"];
+
+pub const OPEN: [&str; 0] = [];
 
 pub fn known(name: &str) -> Option<&'static str> {
-    NAMES.into_iter().chain(RACES).find(|known| *known == name)
+    NAMES
+        .into_iter()
+        .chain(RACES)
+        .chain(STORES)
+        .find(|known| *known == name)
 }
 
 pub fn suite() -> Vec<&'static str> {
     NAMES
         .into_iter()
         .chain(RACES)
+        .chain(STORES)
         .filter(|name| !OPEN.contains(name))
         .collect()
 }
 
 pub fn stores(name: &str) -> &'static [Store] {
-    match RACES.contains(&name) {
+    match RACES.contains(&name) || STORES.contains(&name) {
         true => &[Store::Pg],
         false => &[Store::Lite, Store::Pg],
     }
@@ -84,13 +92,14 @@ impl Site<'_> {
             "linger" => self.linger().await,
             "ghost" => self.ghost().await,
             "blank" => self.blank().await,
+            "closed" => self.closed().await,
+            "outage" => self.outage().await,
             "rival" => self.rival().await,
             "lapse" => self.lapse().await,
             "dangle" => self.dangle().await,
             "orphan" => self.orphan().await,
             "cling" => self.cling().await,
             "adopt" => self.adopt().await,
-            "void" => self.void().await,
             "kin" => self.kin().await,
             other => Err(format!("unknown case {other}")),
         }

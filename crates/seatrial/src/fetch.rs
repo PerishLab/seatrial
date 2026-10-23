@@ -86,7 +86,7 @@ fn unpack(archive: &[u8]) -> Result<Vec<u8>, String> {
     Err("archive holds no keel binary".into())
 }
 
-fn write(path: &std::path::Path, bytes: &[u8], mode: u32) -> Result<(), String> {
+pub(crate) fn write(path: &std::path::Path, bytes: &[u8], mode: u32) -> Result<(), String> {
     let fault = |error: std::io::Error| format!("{}: {error}", path.display());
     std::fs::write(path, bytes).map_err(fault)?;
     std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode)).map_err(fault)

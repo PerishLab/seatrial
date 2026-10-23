@@ -108,6 +108,34 @@ impl<'a> Site<'a> {
         Ok(self.keel(&args).await?.0)
     }
 
+    pub async fn propose(&self, model: &Value) -> Result<(bool, String), String> {
+        let path = self
+            .run
+            .lane
+            .dir
+            .join(format!("{}-{}.json", self.case, self.store.name()));
+        crate::fetch::write(&path, model.to_string().as_bytes(), 0o644)?;
+        let custody = format!("{ESTATE}/custody");
+        let args = [
+            "bootstrap",
+            "--model",
+            "/opt/model.json",
+            "--custody",
+            &custody,
+        ];
+        let mut spec = self.spec("/opt/keel", words(&args));
+        spec.mounts[2] = format!("{}:/opt/model.json:ro", path.display());
+        let output = self.run.lane.once(&spec).await?;
+        let text = output.text();
+        Ok((output.ok, if output.ok { text } else { output.err }))
+    }
+
+    pub fn model(&self) -> Result<Value, String> {
+        let bytes = std::fs::read(&self.run.model)
+            .map_err(|error| format!("{}: {error}", self.run.model.display()))?;
+        serde_json::from_slice(&bytes).map_err(|error| format!("model: {error}"))
+    }
+
     pub async fn held(&self, custody: &str) -> Result<bool, String> {
         let path = format!("{ESTATE}/{custody}");
         let output = self
@@ -205,6 +233,10 @@ impl<'a> Site<'a> {
         crate::pg::session(self.run, self.case, app, sql)
             .await
             .map(drop)
+    }
+
+    pub fn run(&self) -> &Run {
+        self.run
     }
 
     pub fn case(&self) -> &str {

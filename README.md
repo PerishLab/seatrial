@@ -48,8 +48,8 @@ The parity cases prove that the two adapters behave the same
   conflict; a linked query and a count; a tied row refuses to end.
 - `scoped`: a scoped serial numbers entries per ledger.
 - `spare`: an optional field reads as absent or held.
-- `lease`: a lease in the past is refused, and a leased row disappears when
-  its lease ends.
+- `lease`: a lease in the past is refused, a leased row's expiry reads back
+  through `/-/keel/row`, and the row disappears when its lease ends.
 - `outlive`: an entry put under a leased ledger is refused, so no live entry
   remains once the lease ends.
 - `linger`: a tie to a leased course is refused, so no live tie remains once
@@ -61,7 +61,8 @@ The parity cases prove that the two adapters behave the same
 - `cascade`: ending a root ledger ends its entries.
 - `batch`: a batch with a failing deed commits nothing; a good one answers its
   ids and keeps every deed.
-- `pulse`: put, set and end each leave a pulse row, read through `/query`.
+- `pulse`: put, set and end each leave a pulse row, read through
+  `/-/keel/pulse`.
 - `foreign`: a write through a second `keel-api` on the same estate
   invalidates the first one's cached reads.
 - `revived`: after Postgres terminates the backend, reads recover within one
@@ -71,9 +72,17 @@ The parity cases prove that the two adapters behave the same
   commits nothing. The rejection is planted with the store's own tool: a
   `CHECK (false) NOT VALID` constraint through `psql`, and an aborting
   trigger through `sqlite3`.
-- `blank`: a badge's `label` is unique per `kind`, and badges without a kind
-  share one scope: a second `B1` without a kind is a 409, and `B1` of another
-  kind is a 201.
+- `blank`: a model whose unique scope is optional is refused at bootstrap,
+  so a key has no null part.
+- `closed`: a row carries no `created_at`, `updated_at` or `expires_at` on
+  create, read, list or query; `@seal` and `@pulse` answer 404 through list,
+  read, query and batch; `/-/keel` refuses anonymous callers.
+
+The store cases run on Postgres only:
+
+- `outage`: while the store refuses connections, reads and `/health` answer
+  503 `store unavailable`; once it accepts them again, `/health` recovers and
+  the written row reads back.
 
 The race cases run on Postgres only, with two `keel-api` processes on one
 estate (PerishLab/seatrial#7). A third Postgres session holds the `@clock`
@@ -82,8 +91,9 @@ write. The first request is sent, the second follows once the first is
 seen waiting, and the holder is terminated once both are waiting:
 
 - `rival`: two processes put the same unique value; one answers 409.
-- `lapse`: one process puts a unique value while the other edits a leased
-  row to it. Broken, PerishLab/keel#68.
+- `lapse`: a leased row holds no unique value: a put of a leased row's value
+  is a 201, a put of a held value is a 409, and a put racing an edit of a
+  leased row to the same value both succeed (PerishLab/keel#68).
 - `dangle`: one process ends a course while the other ties a student to it;
   no live tie to the ended course remains. Fixed in Keel v0.20.2,
   PerishLab/keel#69.
@@ -94,18 +104,9 @@ seen waiting, and the holder is terminated once both are waiting:
   PerishLab/keel#69.
 - `adopt`: the same pair in the other order, the entry first and the end
   second.
-- `void`: one process puts a badge without a kind while the other edits
-  another badge without a kind to the same label. Broken,
-  PerishLab/seatrial#17: a unique index treats null scopes as distinct.
-- `kin`: the same pair with both badges of one kind; one live badge holds
-  the label.
-
-A broken case asserts the invariant, so it fails until its Bug is fixed. It
-is left out of the default suite and runs by name:
-
-```sh
-cargo run --release -- run --case lapse --case void
-```
+- `kin`: one process puts a badge while the other edits another badge of
+  the same kind to its label; exactly one live badge holds the label, and
+  the loser answers 409 `field label taken`.
 
 In phase 1 a run gates nothing; its output is evidence on the Issues that
 use it.

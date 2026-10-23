@@ -31,7 +31,9 @@ impl Site<'_> {
         expect(sudo.batch(lease).await?.status, 200, "lease")?;
         let held = sudo.get(&format!("/course/{id}")).await?;
         expect(held.status, 200, "read before the lease ends")?;
-        let expires = held.json()?["expires_at"].clone();
+        let trace = sudo.get(&format!("/-/keel/row/course/{id}")).await?;
+        expect(trace.status, 200, "operator read of the lease")?;
+        let expires = trace.json()?["expires_at"].clone();
         ensure(
             expires == until,
             &format!("lease expires at {expires}, wanted {until}"),
@@ -116,19 +118,13 @@ impl Site<'_> {
             "edit",
         )?;
         expect(sudo.delete(&path).await?.status, 204, "end")?;
-        let pack = sudo.query("from @pulse").await?;
-        expect(pack.status, 200, "pulse query")?;
-        let pack = pack.json()?;
-        let beats: Vec<String> = pack["bags"]
-            .as_object()
-            .and_then(|bags| bags.values().next())
-            .and_then(Value::as_array)
-            .map_or(Vec::new(), |list| {
-                list.iter()
-                    .filter(|row| row["key"] == id)
-                    .map(|row| format!("{}:{}", row["verb"], row["unit"]))
-                    .collect()
-            });
+        let flow = sudo.get("/-/keel/pulse?after=0").await?;
+        expect(flow.status, 200, "operator read of the pulse")?;
+        let beats: Vec<String> = rows(&flow)?
+            .iter()
+            .filter(|row| row["key"] == id)
+            .map(|row| format!("{}:{}", row["verb"], row["unit"]))
+            .collect();
         let want = [
             "\"put\":\"course\"",
             "\"set\":\"course\"",
