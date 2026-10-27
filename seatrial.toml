@@ -5,10 +5,19 @@ image = "ghcr.io/perishlab/keel"
 
 [images]
 postgres = "docker.io/library/postgres:17.11-alpine"
-probe = "docker.io/curlimages/curl:8.10.1"
-sqlite = "docker.io/keinos/sqlite3:3.50.4"
+probe = "docker.io/curlimages/curl:8.10.1@sha256:d9b4541e214bcd85196d6e92e2753ac6d0ea699f0af5741f8c6cccbfcf00ef4b"
+sqlite = "docker.io/keinos/sqlite3:3.50.4@sha256:7ea29f0c7e91a8c3f315e831459d07000f34e9e9b25fbc30be2e0481b3e0450f"
 
 [plumb]
 channel = "stable"
 authority = "https://releases.plumb.perish.uk"
 image = "ghcr.io/perishlab/images:stable"
+
+[secrets]
+channel = "stable"
+authority = "https://releases.secrets.perish.uk"
+binaries = ["secrets-api"]
+
+[dynet]
+channel = "stable"
+authority = "https://releases.dynet.perish.uk"

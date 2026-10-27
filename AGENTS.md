@@ -45,6 +45,8 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 - `crates/lib` — scene-independent process, artifact, file and Docker
   capabilities. Product-specific setup and assertions never belong here.
 - `scenes` — TOML entry points and adjacent black-box scene programs.
+  `scenes/dynet/dns.rs` owns the coupled control trial's wire fixture, built as
+  `seatrial-dynet`; its setup and assertions live in the adjacent shell scene.
   `scenes/keel/src` owns the Rust Keel driver, built as the CLI package's
   `seatrial-keel` auxiliary binary; its product logic stays outside the CLI.
 - `seatrial.toml` — what a run trials.
