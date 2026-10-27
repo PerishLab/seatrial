@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+pub(crate) mod docker;
+
 use crate::docker::{Output, call, must, words};
 
 pub const OWNER: &str = "seatrial";

@@ -8,3 +8,8 @@ model = "models/keel.json"
 postgres = "docker.io/library/postgres:17.11-alpine"
 probe = "docker.io/curlimages/curl:8.10.1"
 sqlite = "docker.io/keinos/sqlite3:3.50.4"
+
+[plumb]
+channel = "stable"
+authority = "https://releases.plumb.perish.uk"
+image = "ghcr.io/perishlab/images:stable"

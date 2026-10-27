@@ -16,6 +16,7 @@ On Linux with Docker:
 ```sh
 cargo run --release -- run
 cargo run --release -- run --case sudo --case restart
+cargo run --release -- run --case writer
 ```
 
 `seatrial.toml` names what a run trials. Keel is followed by channel: each
@@ -110,3 +111,19 @@ seen waiting, and the holder is terminated once both are waiting:
 
 In phase 1 a run gates nothing; its output is evidence on the Issues that
 use it.
+
+The opt-in `writer` case runs separately from the Keel suite. It follows
+Plumb's configured channel, verifies the downloaded archive, and drives the
+released `plumb follow` CLI in the Images environment. Git repositories and
+the data home belong to a fresh lane volume. A controlled `gh` executable
+answers the three allowed provider reads and refuses every other operation.
+The case checks that a foreign operator is refused and that the source,
+local and remote refs, and registered worktrees stay unchanged. It uses no
+product crate or private state format. Teardown runs after a failed trial too.
+
+This proves the command boundary against a controlled provider, not the real
+GitHub service. It covers the first-discovery refusal only; the existing
+seated and publication-stage tests remain in Plumb until their guarantees
+are carried over. It is not a candidate-artifact gate and does not replace
+the current per-commit regression tests (PerishLab/seatrial#21,
+PerishLab/.github#136).
