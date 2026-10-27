@@ -5,7 +5,15 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Pins {
     pub keel: Keel,
+    pub plumb: Option<Plumb>,
     pub images: Images,
+}
+
+#[derive(Deserialize)]
+pub struct Plumb {
+    pub channel: String,
+    pub authority: String,
+    pub image: String,
 }
 
 #[derive(Deserialize)]

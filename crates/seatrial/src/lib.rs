@@ -1,6 +1,6 @@
 mod case;
-mod docker;
 mod fetch;
+mod follow;
 mod lane;
 mod pg;
 mod pin;
@@ -13,11 +13,15 @@ use std::time::Instant;
 
 use docker::{must, words};
 use lane::Lane;
+use lane::docker;
 use site::{Run, Site, Store};
 use tokio::task::JoinSet;
 
 pub async fn run(pins: &Path, only: &[String]) -> Result<bool, String> {
     let pins = pin::read(pins)?;
+    if only == ["writer"] {
+        return follow::run(&pins).await;
+    }
     let cases = select(only)?;
     let lane = Lane::open(PathBuf::from(".local")).await?;
     println!("lane    {} (perish.owner={})", lane.ns, lane::OWNER);
