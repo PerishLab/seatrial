@@ -27,6 +27,7 @@ impl Request<'_> {
             directory: ".".into(),
             env: Vec::new(),
             timeout: Duration::from_secs(300),
+            group: false,
         };
         let output = binary::run(&spec, self.stop.clone()).await?;
         Ok(Output {

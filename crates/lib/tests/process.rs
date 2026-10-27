@@ -10,6 +10,7 @@ fn spec(root: &Path, script: &str) -> Spec {
         directory: root.into(),
         env: vec![("READY".into(), root.join("ready").display().to_string())],
         timeout: Duration::from_secs(30),
+        group: true,
     }
 }
 
@@ -147,4 +148,38 @@ async fn background() {
     );
     assert!(run(&command, stop()).await.unwrap().status.success());
     dead(ready(&root.path().join("ready")).await).await;
+}
+
+#[tokio::test]
+async fn nested() {
+    let root = tempfile::tempdir().unwrap();
+    if std::env::var_os("SEATRIAL_NESTED").is_some() {
+        let path = std::env::var("SEATRIAL_READY").unwrap();
+        let mut command = spec(
+            root.path(),
+            "printf '%s' \"$$\" > \"$READY\"; exec sleep 30",
+        );
+        command.env = vec![("READY".into(), path)];
+        command.group = false;
+        run(&command, stop()).await.unwrap();
+        return;
+    }
+    let mut command = spec(root.path(), "");
+    command.command = vec![
+        std::env::current_exe().unwrap().display().to_string(),
+        "--exact".into(),
+        "nested".into(),
+        "--nocapture".into(),
+    ];
+    command.env.push(("SEATRIAL_NESTED".into(), "1".into()));
+    command.env.push((
+        "SEATRIAL_READY".into(),
+        root.path().join("ready").display().to_string(),
+    ));
+    let (sender, stop) = watch::channel(false);
+    let task = tokio::spawn(async move { run(&command, stop).await });
+    let pid = ready(&root.path().join("ready")).await;
+    sender.send(true).unwrap();
+    assert!(task.await.unwrap().unwrap_err().contains("cancelled"));
+    dead(pid).await;
 }

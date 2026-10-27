@@ -30,8 +30,9 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   in the Postgres container or `sqlite3` from the pinned SQLite image, and
   only to sabotage or observe the store the way an operator could.
 - A case asserts the behavior a product promises, never the behavior it
-  has. A case that a product breaks names its Bug in the README and is listed
-  in `OPEN`, which keeps it out of the default suite until the Bug is fixed.
+  has. A case that a product breaks names its Bug in the README and is marked
+  `default = false` with its `bug` reference in the scene manifest, keeping it
+  out of the default suite until the Bug is fixed.
 - Guard proves the runner's source only and never runs the suite. In phase 1
   a run gates nothing; its output is manual evidence on the Issues that use
   it.
@@ -39,11 +40,12 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 
 ## Repository map
 
-- `crates/cli` — CLI assembly, scene selection, and the transitional Keel
-  runner. Keel-specific behavior stays here until its scene migration.
+- `crates/cli` — generic CLI assembly, scene selection, shared preparation
+  and concurrent execution.
 - `crates/lib` — scene-independent process, artifact, file and Docker
   capabilities. Product-specific setup and assertions never belong here.
 - `scenes` — TOML entry points and adjacent black-box scene programs.
+  `scenes/keel/src` owns the Rust Keel driver, built as the CLI package's
+  `seatrial-keel` auxiliary binary; its product logic stays outside the CLI.
 - `seatrial.toml` — what a run trials.
-- `models` — the canonical Keel manifests the cases serve.
 - `.runseal` — committed inert Runseal resources.

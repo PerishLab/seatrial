@@ -2,7 +2,6 @@
 channel = "stable"
 authority = "https://releases.keel.perish.uk"
 image = "ghcr.io/perishlab/keel"
-model = "models/keel.json"
 
 [images]
 postgres = "docker.io/library/postgres:17.11-alpine"

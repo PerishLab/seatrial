@@ -14,6 +14,7 @@ pub struct Spec {
     pub directory: PathBuf,
     pub env: Vec<(String, String)>,
     pub timeout: Duration,
+    pub group: bool,
 }
 
 pub async fn run(spec: &Spec, mut stop: Stop) -> Result<Output, String> {
@@ -28,22 +29,29 @@ pub async fn run(spec: &Spec, mut stop: Stop) -> Result<Output, String> {
     if *stop.borrow() {
         return Err("command cancelled before launch".into());
     }
-    let child = Command::new(program)
+    let mut command = Command::new(program);
+    command
         .args(&spec.command[1..])
         .current_dir(&spec.directory)
         .envs(spec.env.iter().cloned())
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .process_group(0)
-        .kill_on_drop(true)
+        .kill_on_drop(true);
+    if spec.group {
+        command.process_group(0);
+    }
+    let child = command
         .spawn()
         .map_err(|error| format!("launch {program}: {error}"))?;
-    let group = Group(child.id().ok_or("child has no process id")?);
+    let mut group = Group::new(child.id().ok_or("child has no process id")?, spec.group);
     let wait = child.wait_with_output();
     tokio::pin!(wait);
     let reason = tokio::select! {
-        result = &mut wait => return result.map_err(|error| format!("wait {program}: {error}")),
+        result = &mut wait => {
+            group.release();
+            return result.map_err(|error| format!("wait {program}: {error}"));
+        },
         _ = tokio::time::sleep(spec.timeout) => "command timed out",
         _ = cancelled(&mut stop) => "command cancelled",
     };

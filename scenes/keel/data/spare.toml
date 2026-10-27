@@ -1,0 +1,2 @@
+timeout = 120
+command = ["sh", "-eu", "case.sh", "spare", "lite", "pg"]

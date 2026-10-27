@@ -24,11 +24,12 @@ path = 3
 roots = [
     "crates/*/src",
     "crates/*/tests",
+    "scenes/*",
 ]
 
 [scan]
 exclude = ["**/target/**"]
-include = ["crates/**/*.rs"]
+include = ["crates/**/*.rs", "scenes/*/**/*.rs"]
 
 [word]
 single = true
