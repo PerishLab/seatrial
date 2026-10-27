@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
-members = ["crates/seatrial"]
+members = ["crates/cli", "crates/lib"]
+default-members = ["crates/cli", "crates/lib"]
 
 [workspace.package]
 version = "0.0.0"
@@ -17,5 +18,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.10"
 tar = "0.4"
-tokio = { version = "1", features = ["macros", "process", "rt-multi-thread", "time"] }
+tokio = { version = "1", features = ["macros", "process", "rt-multi-thread", "time", "signal", "sync"] }
 toml = "0.9"
+libc = "0.2"
+tempfile = "3"

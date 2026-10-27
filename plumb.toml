@@ -4,7 +4,7 @@
 [[layout.seat]]
 path = "crates/*"
 anchor = ["Cargo.toml"]
-note = "The seatrial runner crate."
+note = "The CLI and scene-independent library."
 
 [[layout.seat]]
 path = ".runseal"
@@ -29,6 +29,10 @@ note = "Keel manifests the cases seal, in canonical form."
 [[layout.seat]]
 path = ".cargo"
 note = "Cargo registry configuration."
+
+[[layout.seat]]
+path = "scenes"
+note = "Black-box scene manifests and adjacent programs."
 
 [identity]
 ns = "seatrial"

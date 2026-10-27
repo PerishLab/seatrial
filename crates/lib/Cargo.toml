@@ -1,0 +1,21 @@
+[package]
+name = "seatrial-lib"
+description = "Scene-independent execution and isolation for Seatrial."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+flate2.workspace = true
+getrandom.workspace = true
+libc.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tar.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+plumb = { workspace = true, features = ["testing"] }
+tempfile.workspace = true

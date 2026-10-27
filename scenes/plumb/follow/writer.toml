@@ -1,0 +1,4 @@
+products = ["plumb"]
+image = "plumb"
+timeout = 120
+command = ["sh", "-eu", "writer.run.sh"]
