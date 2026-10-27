@@ -436,15 +436,28 @@ name = "seatrial"
 version = "0.0.0"
 dependencies = [
  "clap",
+ "plumb",
+ "seatrial-lib",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "toml",
+]
+
+[[package]]
+name = "seatrial-lib"
+version = "0.0.0"
+dependencies = [
  "flate2",
  "getrandom",
+ "libc",
  "plumb",
- "serde",
  "serde_json",
  "sha2",
  "tar",
+ "tempfile",
  "tokio",
- "toml",
 ]
 
 [[package]]

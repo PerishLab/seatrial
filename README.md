@@ -17,7 +17,48 @@ On Linux with Docker:
 cargo run --release -- run
 cargo run --release -- run --case sudo --case restart
 cargo run --release -- run --case writer
+cargo run --release -- run --case plumb/follow/writer
 ```
+
+The CLI lives in `crates/cli`; `crates/lib` supplies scene-independent
+execution, artifact verification, file snapshots and lane management. Keel's
+existing runner remains in the CLI while its cases migrate separately.
+
+`scenes/plumb/follow/writer.toml` selects the writer scene. `writer` remains
+its short alias. A scene command runs on the host from a fresh snapshot of
+the manifest's directory; adjacent scripts may drive Docker and other tools
+directly. `--scenes <directory>` selects another scene root. This first pilot
+runs one TOML scene per invocation; the default Keel suite stays unchanged.
+
+```toml
+products = ["plumb"]
+image = "plumb"
+timeout = 120
+command = ["sh", "-eu", "writer.run.sh"]
+```
+
+`products` names channel configurations in `seatrial.toml`; `image` optionally
+names a product's configured runtime image. That root configuration remains
+the sole owner of channels, release authorities and image references. `timeout`
+is the positive command budget in seconds, starting after preparation, and
+`command` is an argv list. Unknown fields are refused. There is no expression,
+step or assertion language.
+
+The command receives `SEATRIAL_LANE`, `SEATRIAL_VOLUME`, `SEATRIAL_SCENE` and
+`SEATRIAL_WORK`, plus `SEATRIAL_BINARY_<PRODUCT>` for each verified product
+and `SEATRIAL_IMAGE` when selected. The scene snapshot hash, product commit,
+archive digest and actual runtime image digest are printed with the result.
+Snapshot identity includes adjacent file names, contents and permissions;
+symbolic links and special files are refused. Scene code owns its business
+setup and assertions. The writer's original business script is unchanged.
+
+Timeout, Ctrl-C and SIGTERM terminate the scene process group and wait for its
+command before lane teardown. Cancellation exits 130. Failed commands retain
+stdout, stderr and status; cleanup errors are reported alongside the original
+failure. Every cleanup attempts containers, volumes and network, then reads
+back remaining resources. Cleanup failure retains the working directory for
+inspection. An uncatchable SIGKILL cannot run teardown. Scene commands are
+trusted repository programs using the host's ordinary tools, not a sandbox.
 
 `seatrial.toml` names what a run trials. Keel is followed by channel: each
 run resolves Keel's current stable from its release authority's stable

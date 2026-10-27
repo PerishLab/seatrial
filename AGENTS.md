@@ -39,8 +39,11 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 
 ## Repository map
 
-- `crates/seatrial` — the runner: lane provisioning, the probe, artifact
-  fetching, and the cases.
+- `crates/cli` — CLI assembly, scene selection, and the transitional Keel
+  runner. Keel-specific behavior stays here until its scene migration.
+- `crates/lib` — scene-independent process, artifact, file and Docker
+  capabilities. Product-specific setup and assertions never belong here.
+- `scenes` — TOML entry points and adjacent black-box scene programs.
 - `seatrial.toml` — what a run trials.
 - `models` — the canonical Keel manifests the cases serve.
 - `.runseal` — committed inert Runseal resources.
