@@ -41,6 +41,7 @@ pub async fn prepare(
                 name,
                 channel: &channel.channel,
                 pointer,
+                additional: &channel.binaries,
             },
             &path,
         )
@@ -52,6 +53,10 @@ pub async fn prepare(
         env.push((
             format!("SEATRIAL_BINARY_{}", name.to_ascii_uppercase()),
             path.display().to_string(),
+        ));
+        env.push((
+            format!("SEATRIAL_BINARIES_{}", name.to_ascii_uppercase()),
+            serde_json::to_string(&release.executables).map_err(|error| error.to_string())?,
         ));
         env.push((
             format!("SEATRIAL_VERSION_{}", name.to_ascii_uppercase()),
@@ -92,6 +97,32 @@ pub async fn image(pins: &Pins, name: &str, lane: &Lane) -> Result<String, Strin
 }
 
 async fn pull(lane: &Lane, image: &str) -> Result<(), String> {
+    if let Some((_, digest)) = image.split_once("@sha256:") {
+        let args = words(&[
+            "image",
+            "inspect",
+            "--format",
+            "{{json .RepoDigests}}",
+            image,
+        ]);
+        let observed = docker::Request {
+            args: &args,
+            stop: lane.stop.clone(),
+        }
+        .run()
+        .await?;
+        if observed.ok {
+            let digests: Vec<String> =
+                serde_json::from_slice(&observed.out).map_err(|error| error.to_string())?;
+            if digests
+                .iter()
+                .any(|value| value.ends_with(&format!("@sha256:{digest}")))
+            {
+                println!("image   cached {image}");
+                return Ok(());
+            }
+        }
+    }
     docker::Request {
         args: &words(&["pull", "--quiet", image]),
         stop: lane.stop.clone(),

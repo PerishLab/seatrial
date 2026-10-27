@@ -1,4 +1,7 @@
-use std::io::Read;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
+
+mod archive;
 
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -11,19 +14,22 @@ pub struct Release {
     pub version: String,
     pub commit: String,
     pub archive: String,
+    pub executables: BTreeMap<String, String>,
 }
 
 pub struct Product<'a> {
     pub name: &'a str,
     pub channel: &'a str,
     pub pointer: String,
+    pub additional: &'a [String],
 }
 
 pub async fn fetch(
     lane: &Lane,
     product: Product<'_>,
-    destination: &std::path::Path,
+    destination: &Path,
 ) -> Result<Release, String> {
+    let names = names(&product)?;
     let channel = product.channel;
     let pointer = parse(&probe::fetch(lane, &product.pointer).await?, "pointer")?;
     let canonical = pointer["schema"] == 1 && pointer["channel"] == channel;
@@ -48,11 +54,28 @@ pub async fn fetch(
     };
     let archive = probe::fetch(lane, url).await?;
     check(&archive, sha, "archive")?;
-    write(destination, &unpack(&archive, product.name)?, 0o755)?;
+    let files = archive::unpack(&archive, &names)?;
+    let mut executables = BTreeMap::new();
+    for (name, bytes) in files {
+        let path = if name == product.name {
+            destination.to_owned()
+        } else {
+            destination
+                .parent()
+                .ok_or("binary destination has no parent")?
+                .join(format!("{}-binaries", product.name))
+                .join(&name)
+        };
+        std::fs::create_dir_all(path.parent().ok_or("executable has no parent")?)
+            .map_err(|error| error.to_string())?;
+        write(&path, &bytes, 0o755)?;
+        executables.insert(name, path.display().to_string());
+    }
     Ok(Release {
         version: version.into(),
         commit: seal["commit"].as_str().unwrap_or_default().into(),
         archive: sha.into(),
+        executables,
     })
 }
 
@@ -71,21 +94,29 @@ fn check(bytes: &[u8], want: &str, what: &str) -> Result<(), String> {
     Err(format!("{what} digest {digest} differs from {want}"))
 }
 
-fn unpack(archive: &[u8], name: &str) -> Result<Vec<u8>, String> {
-    let mut entries = tar::Archive::new(flate2::read::GzDecoder::new(archive));
-    let fault = |error: std::io::Error| format!("archive: {error}");
-    for entry in entries.entries().map_err(fault)? {
-        let mut entry = entry.map_err(fault)?;
-        if entry
-            .path()
-            .map_err(fault)?
-            .file_name()
-            .is_some_and(|file| file == name)
-        {
-            let mut binary = Vec::new();
-            entry.read_to_end(&mut binary).map_err(fault)?;
-            return Ok(binary);
+fn names(product: &Product<'_>) -> Result<BTreeSet<String>, String> {
+    if product.additional.len() > 8 {
+        return Err("too many additional executables".into());
+    }
+    let mut names = BTreeSet::new();
+    for name in std::iter::once(product.name).chain(product.additional.iter().map(String::as_str)) {
+        if !valid(name) || !names.insert(name.to_owned()) {
+            return Err(format!("invalid or repeated executable name {name}"));
         }
     }
-    Err(format!("archive holds no {name} binary"))
+    Ok(names)
+}
+
+fn valid(name: &str) -> bool {
+    if name.len() > 64
+        || !name
+            .bytes()
+            .next()
+            .is_some_and(|byte| byte.is_ascii_lowercase())
+    {
+        return false;
+    }
+    name.bytes().all(|byte| {
+        byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'-')
+    })
 }

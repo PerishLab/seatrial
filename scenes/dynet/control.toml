@@ -1,0 +1,3 @@
+image = "plumb"
+timeout = 600
+command = ["sh", "-eu", "control.run.sh"]

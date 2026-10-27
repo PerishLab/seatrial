@@ -193,3 +193,41 @@ seated and publication-stage tests remain in Plumb until their guarantees
 are carried over. It is not a candidate-artifact gate and does not replace
 the current per-commit regression tests (PerishLab/seatrial#21,
 PerishLab/.github#136).
+
+## Encrypted Dynet control
+
+`cargo run -- run --case dynet/control` explicitly selects the coupled Dynet and
+Secrets trial. It follows their configured channels and the existing Plumb
+runtime image, records artifact/image identities and builds its own small Rust
+DNS fixture. The host needs `jq`, `rg`, Docker and `/dev/net/tun`; the client
+container gets NET_ADMIN only in its isolated shared namespace. Its disposable
+filesystem installs Debian trixie's exact `iproute2=6.15.0-1` fixture tool and
+prints that package version. See the [Debian package record](https://packages.debian.org/trixie/amd64/iproute2).
+
+The scene provisions an owned persistent TUN interface and routing-table alias
+through ordinary OS interfaces. It checks configuration activation and route
+projection, without claiming system resolver takeover or commercial VPN egress.
+API, publisher and device use separate filesystems; only their network namespace
+is shared, making the SDK's literal-loopback HTTP origin truthful. The API is
+reachable as `api.<lane>.internal:8080` from the probe. No host port is published.
+The API sees a pinned public publisher root, opaque bundles and digest-only
+credentials; it never mounts the signer or device identity.
+
+The flow checks encrypted URL application, subscription and heartbeat, restart
+from confirmed cache with the API stopped, generation/conflict refusal, durable
+revocation across an offline restart, higher-generation recovery and API-token
+denial without a false stop claim. It also drives encrypted file input, invalid
+payload masking and the client's received-generation floor through the public
+CLI. SQLite observation uses the configured pinned SQLite image against only
+this case's store. Lane teardown removes all stores, containers and namespace.
+
+A product configuration may list `binaries = ["secrets-api"]` to request extra
+executables from the same verified archive. The product-named executable remains
+`SEATRIAL_BINARY_<PRODUCT>`; `SEATRIAL_BINARIES_<PRODUCT>` is a JSON map of all
+selected executable names to local paths. Selection rejects unsafe/repeated
+names, duplicate archive members, non-regular members and missing executables.
+The archive is fetched and checked once for the selected channel identity.
+
+An image pinned by both exact tag and SHA-256 may reuse the matching local
+repository digest, which is printed explicitly. Mutable channel images still
+require a fresh pull. This does not substitute a different digest on failure.

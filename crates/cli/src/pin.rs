@@ -14,6 +14,8 @@ pub struct Channel {
     pub channel: String,
     pub authority: String,
     pub image: Option<String>,
+    #[serde(default)]
+    pub binaries: Vec<String>,
 }
 
 pub fn read(path: &Path) -> Result<Pins, String> {
