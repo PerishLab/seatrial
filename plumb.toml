@@ -23,16 +23,13 @@ name = ["seatrial.toml"]
 note = "What a run trials: first-party products by channel, third-party images by exact tag."
 
 [[layout.seat]]
-path = "models"
-note = "Keel manifests the cases seal, in canonical form."
-
-[[layout.seat]]
 path = ".cargo"
 note = "Cargo registry configuration."
 
 [[layout.seat]]
-path = "scenes"
-note = "Black-box scene manifests and adjacent programs."
+path = "scenes/*"
+scan = ["scenes/*/**/*.rs"]
+note = "Product-owned black-box scene manifests, programs and Rust drivers."
 
 [identity]
 ns = "seatrial"

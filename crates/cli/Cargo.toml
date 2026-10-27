@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish = false
+default-run = "seatrial"
 
 [dependencies]
 clap.workspace = true
@@ -18,3 +19,7 @@ seatrial-lib = { path = "../lib" }
 
 [dev-dependencies]
 tempfile.workspace = true
+
+[[bin]]
+name = "seatrial-keel"
+path = "../../scenes/keel/src/main.rs"

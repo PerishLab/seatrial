@@ -14,10 +14,14 @@ pub fn write(path: &Path, bytes: &[u8], mode: u32) -> Result<(), String> {
 }
 
 pub fn snapshot(source: &Path, destination: &Path) -> Result<String, String> {
-    use sha2::Digest;
     copy(source, destination)?;
+    digest(destination)
+}
+
+pub fn digest(path: &Path) -> Result<String, String> {
+    use sha2::Digest;
     let mut digest = sha2::Sha256::new();
-    hash(destination, destination, &mut digest)?;
+    hash(path, path, &mut digest)?;
     Ok(format!("{:x}", digest.finalize()))
 }
 
@@ -45,6 +49,10 @@ fn copy(source: &Path, destination: &Path) -> Result<(), String> {
             return Err(format!("unsupported file type: {}", path.display()));
         }
     }
+    let permissions = std::fs::metadata(source)
+        .map_err(|error| error.to_string())?
+        .permissions();
+    std::fs::set_permissions(destination, permissions).map_err(|error| error.to_string())?;
     Ok(())
 }
 

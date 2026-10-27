@@ -1,4 +1,3 @@
-mod keel;
 mod pin;
 mod scene;
 
@@ -81,14 +80,5 @@ async fn run(
     stop: seatrial_lib::binary::Stop,
 ) -> Result<bool, String> {
     let pins = pin::read(path)?;
-    if let [name] = cases {
-        let name = match name.as_str() {
-            "writer" => "plumb/follow/writer",
-            name => name,
-        };
-        if name.contains('/') {
-            return scene::run(&pins, scenes, name, stop).await;
-        }
-    }
-    keel::run(pins, cases, stop).await
+    scene::run(&pins, scenes, cases, stop).await
 }

@@ -1,102 +1,86 @@
-use seatrial_lib::binary::{self, Product};
-use seatrial_lib::docker::{self, Lane, words};
-use seatrial_lib::{file, probe};
-
 use super::manifest::Scene;
-use crate::pin::Pins;
+use super::plan::{Setup, Suite};
+use seatrial_lib::binary;
+use seatrial_lib::docker::Lane;
+use seatrial_lib::file;
+use std::path::PathBuf;
 
-pub async fn prepare(pins: &Pins, scene: &Scene, lane: &Lane) -> Result<binary::Spec, String> {
-    let directory = lane.dir.join("scene");
-    let source = scene.path.parent().ok_or("scene has no parent")?;
-    let digest = file::snapshot(source, &directory)?;
-    let name = scene.path.file_name().ok_or("scene has no file name")?;
-    let snapshot = std::fs::read(directory.join(name)).map_err(|error| error.to_string())?;
-    if snapshot != scene.bytes {
-        return Err("scene manifest changed during preparation".into());
-    }
-    println!("scene   {} sha256:{digest}", scene.name);
-    let volume = lane.volume("case").await?;
-    let mut env = vec![
-        ("SEATRIAL_LANE".into(), lane.ns.clone()),
-        ("SEATRIAL_VOLUME".into(), volume),
-        ("SEATRIAL_SCENE".into(), directory.display().to_string()),
-        ("SEATRIAL_WORK".into(), lane.dir.display().to_string()),
-    ];
-    if !scene.manifest.products.is_empty() {
-        docker::Request {
-            args: &words(&["pull", "--quiet", &pins.images.probe]),
-            stop: lane.stop.clone(),
-        }
-        .must()
-        .await?;
-        probe::start(lane, &pins.images.probe).await?;
-    }
-    for name in &scene.manifest.products {
-        env.push(product(pins, name, lane).await?);
-    }
-    if let Some(name) = &scene.manifest.image {
-        let image = pins
-            .products
-            .get(name)
-            .and_then(|product| product.image.as_ref())
-            .ok_or_else(|| format!("scene needs [{name}].image configuration"))?;
-        docker::Request {
-            args: &words(&["pull", "--quiet", image]),
-            stop: lane.stop.clone(),
-        }
-        .must()
-        .await?;
-        let args = words(&[
-            "image",
-            "inspect",
-            "--format",
-            "{{index .RepoDigests 0}}",
-            image,
-        ]);
-        let digest = docker::Request {
-            args: &args,
-            stop: lane.stop.clone(),
-        }
-        .must()
-        .await?;
-        println!("image   {}", digest.text());
-        env.push(("SEATRIAL_IMAGE".into(), image.clone()));
-    }
-    Ok(binary::Spec {
-        command: scene.manifest.command.clone(),
-        directory,
-        env,
-        timeout: std::time::Duration::from_secs(scene.manifest.timeout),
-    })
+pub struct Group {
+    pub source: PathBuf,
+    pub directory: PathBuf,
+    pub env: Vec<(String, String)>,
+    pub digest: String,
 }
 
-async fn product(pins: &Pins, name: &str, lane: &Lane) -> Result<(String, String), String> {
-    let channel = pins
-        .products
-        .get(name)
-        .ok_or_else(|| format!("scene needs [{name}] configuration"))?;
-    let pointer = format!(
-        "{}/v1/channels/{}.json",
-        channel.authority.trim_end_matches('/'),
-        channel.channel
-    );
-    let path = lane.dir.join(name);
-    let release = binary::fetch(
-        lane,
-        Product {
-            name,
-            channel: &channel.channel,
-            pointer,
-        },
-        &path,
-    )
-    .await?;
-    println!(
-        "binary  {name} {} at {}, archive sha256:{}",
-        release.version, release.commit, release.archive
-    );
-    Ok((
-        format!("SEATRIAL_BINARY_{}", name.to_ascii_uppercase()),
-        path.display().to_string(),
-    ))
+pub async fn prepare(
+    suite: &Suite,
+    lane: &Lane,
+    inputs: &[(String, String)],
+    index: usize,
+) -> Result<Group, String> {
+    let work = lane.dir.join(format!("group-{index}"));
+    std::fs::create_dir(&work).map_err(|error| error.to_string())?;
+    let directory = work.join("scene");
+    let digest = file::snapshot(&suite.source, &directory)?;
+    let setup = directory.join("suite.toml");
+    if setup.is_file() {
+        let text = std::fs::read_to_string(setup).map_err(|error| error.to_string())?;
+        let copied: Setup = toml::from_str(&text).map_err(|error| error.to_string())?;
+        if copied != suite.setup {
+            return Err("suite changed during preparation".into());
+        }
+    }
+    let mut env = inputs.to_vec();
+    env.extend([
+        ("SEATRIAL_LANE".into(), lane.ns.clone()),
+        ("SEATRIAL_WORK".into(), work.display().to_string()),
+        ("SEATRIAL_SCENE".into(), directory.display().to_string()),
+        ("SEATRIAL_SOURCE".into(), suite.source.display().to_string()),
+    ]);
+    let group = Group {
+        source: suite.source.clone(),
+        directory,
+        env,
+        digest,
+    };
+    println!("suite   {} sha256:{}", suite.source.display(), group.digest);
+    if !suite.setup.prepare.is_empty() {
+        let spec = binary::Spec {
+            command: suite.setup.prepare.clone(),
+            directory: group.directory.clone(),
+            env: group.env.clone(),
+            timeout: std::time::Duration::from_secs(suite.setup.timeout),
+            group: true,
+        };
+        super::task::execute(&spec, lane.stop.clone()).await?;
+        if file::digest(&suite.source)? != group.digest {
+            return Err("suite source changed while its prepare command ran".into());
+        }
+    }
+    Ok(group)
+}
+
+pub async fn case(group: &Group, scene: &Scene, lane: &Lane) -> Result<binary::Spec, String> {
+    let relative = scene
+        .path
+        .strip_prefix(&group.source)
+        .map_err(|error| error.to_string())?;
+    let bytes = std::fs::read(group.directory.join(relative)).map_err(|error| error.to_string())?;
+    if bytes != scene.bytes {
+        return Err("scene manifest changed during preparation".into());
+    }
+    let name = format!("case-{}", file::nonce(8)?);
+    let volume = lane.volume(&name).await?;
+    println!("volume  {} {volume}", scene.name);
+    let mut env = group.env.clone();
+    env.push(("SEATRIAL_VOLUME".into(), volume));
+    env.push(("SEATRIAL_CASE".into(), scene.name.clone()));
+    println!("scene   {} sha256:{}", scene.name, group.digest);
+    Ok(binary::Spec {
+        command: scene.manifest.command.clone(),
+        directory: group.directory.clone(),
+        env,
+        timeout: std::time::Duration::from_secs(scene.manifest.timeout),
+        group: true,
+    })
 }

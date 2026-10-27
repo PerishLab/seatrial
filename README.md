@@ -22,13 +22,15 @@ cargo run --release -- run --case plumb/follow/writer
 
 The CLI lives in `crates/cli`; `crates/lib` supplies scene-independent
 execution, artifact verification, file snapshots and lane management. Keel's
-existing runner remains in the CLI while its cases migrate separately.
+black-box driver lives under `scenes/keel/src`, compiled as the separate
+`seatrial-keel` auxiliary executable. Product-specific code stays in scenes.
 
 `scenes/plumb/follow/writer.toml` selects the writer scene. `writer` remains
 its short alias. A scene command runs on the host from a fresh snapshot of
 the manifest's directory; adjacent scripts may drive Docker and other tools
-directly. `--scenes <directory>` selects another scene root. This first pilot
-runs one TOML scene per invocation; the default Keel suite stays unchanged.
+directly. `--scenes <directory>` selects another scene root. Several scenes can be selected in one invocation. Without `--case`, the
+default suite selects the same 28 Keel cases and 48 storage instances. Short
+names resolve only when unique; otherwise use the qualified scene path.
 
 ```toml
 products = ["plumb"]
@@ -52,6 +54,29 @@ Snapshot identity includes adjacent file names, contents and permissions;
 symbolic links and special files are refused. Scene code owns its business
 setup and assertions. The writer's original business script is unchanged.
 
+A nearest `suite.toml` groups cases and optionally declares one `prepare`
+command, its command timeout, shared `products` and `default = true`. The runner
+prepares every selected group before starting its cases concurrently, using
+one lane and one verified product resolution per invocation. There is no
+nested inheritance or business-step language. Keel's suite shares one Postgres
+service while each case owns its database and SQLite volume. Each case TOML
+explicitly passes `lite`, `pg` or both to its scene driver, preserving the 48
+independent instance verdicts. An excluded broken case uses `default = false`
+and its `bug` reference; it remains explicitly selectable.
+
+`SEATRIAL_SOURCE` names the original group directory; `SEATRIAL_SCENE` is its
+snapshot and `SEATRIAL_WORK` its writable run directory. Configured images are
+available as `SEATRIAL_IMAGE_<NAME>`, verified products additionally provide
+`SEATRIAL_BINARY_<PRODUCT>` and `SEATRIAL_VERSION_<PRODUCT>`. Source changes
+during preparation are refused. Keel's prepare script builds its auxiliary
+binary once through the repository's cached, locked offline Cargo target,
+copies it into the run directory and prints its SHA-256. This source-only
+runner therefore needs the Rust/Cargo toolchain as well as Docker; build time
+is part of the invocation's overall cost. Existing Rust assertions, recovery
+loops and race barriers remain in the scene program and use public product
+interfaces. Guard compiles this auxiliary target and tests the runner without
+running the Docker suite.
+
 Timeout, Ctrl-C and SIGTERM terminate the scene process group and wait for its
 command before lane teardown. Cancellation exits 130. Failed commands retain
 stdout, stderr and status; cleanup errors are reported alongside the original
@@ -66,7 +91,7 @@ pointer, the one `manage.sh` reads, and prints the version, commit, CLI
 archive digest and image digest it actually ran. The Postgres, probe and
 SQLite tool images are third-party and stay pinned by exact tag.
 
-Every Keel case serves the one model in `models/keel.json`, a canonical
+Every Keel case serves the one model in `scenes/keel/model.json`, a canonical
 manifest written by Keel.
 
 ## Cases
@@ -153,7 +178,7 @@ seen waiting, and the holder is terminated once both are waiting:
 In phase 1 a run gates nothing; its output is evidence on the Issues that
 use it.
 
-The opt-in `writer` case runs separately from the Keel suite. It follows
+The opt-in `writer` case can run alone or beside selected Keel cases. It follows
 Plumb's configured channel, verifies the downloaded archive, and drives the
 released `plumb follow` CLI in the Images environment. Git repositories and
 the data home belong to a fresh lane volume. A controlled `gh` executable
