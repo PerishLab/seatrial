@@ -286,3 +286,18 @@ The archive is fetched and checked once for the selected channel identity.
 An image pinned by both exact tag and SHA-256 may reuse the matching local
 repository digest, which is printed explicitly. Mutable channel images still
 require a fresh pull. This does not substitute a different digest on failure.
+
+The portable Keel pilot at `scenes/keel/native` separates the SQLite instances of
+`health` and `again`. It uses the resolved published CLI and that release's OCI
+image, with no Cargo preparation. The image API version must equal the resolved
+CLI version. A product image without a tag follows that resolved release marker;
+an explicit tag or digest keeps its existing meaning. Reports record both the
+resolved reference and immutable runtime digest.
+
+The two pilot cases keep the legacy assertions: health bootstraps custody,
+starts the API, reads custody, and independently requires anonymous `/health`
+HTTP 200 after readiness; again requires the first custody file, refuses a
+second bootstrap without a second custody file, and requires status `sealed`.
+Each gets a fresh volume. The legacy group and its PostgreSQL instances remain;
+the portable group is excluded from the legacy root defaults and selected through
+its own Depot bundle. The stable writer bundle is independent of this pilot.

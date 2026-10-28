@@ -95,13 +95,14 @@ pub async fn image(
         .get(name)
         .and_then(|product| product.image.as_ref())
         .ok_or_else(|| format!("scene needs [{name}].image configuration"))?;
-    pull(lane, image).await?;
+    let image = reference(image, name, record)?;
+    pull(lane, &image).await?;
     let args = words(&[
         "image",
         "inspect",
         "--format",
         "{{index .RepoDigests 0}}",
-        image,
+        &image,
     ]);
     let digest = docker::Request {
         args: &args,
@@ -128,6 +129,26 @@ pub async fn image(
         digest: resolved.clone(),
     });
     Ok(resolved)
+}
+
+fn reference(image: &str, name: &str, record: &crate::record::Record) -> Result<String, String> {
+    if image.contains('@')
+        || image
+            .rsplit('/')
+            .next()
+            .is_some_and(|part| part.contains(':'))
+    {
+        return Ok(image.into());
+    }
+    let artifact = record
+        .products
+        .iter()
+        .find(|product| product.name == name)
+        .ok_or_else(|| format!("runtime image needs resolved {name} release"))?;
+    Ok(format!(
+        "{image}:{}",
+        artifact.version.trim_start_matches('v')
+    ))
 }
 
 async fn pull(lane: &Lane, image: &str) -> Result<(), String> {
