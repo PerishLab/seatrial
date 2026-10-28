@@ -9,7 +9,7 @@ use std::process::ExitCode;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "seatrial")]
+#[command(name = "seatrial", version = plumb::version!("SEATRIAL"))]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -110,4 +110,22 @@ async fn run(
         record,
     )
     .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn version() {
+        let error = Cli::try_parse_from(["seatrial", "--version"])
+            .err()
+            .expect("version must use the display exit");
+        assert_eq!(error.kind(), clap::error::ErrorKind::DisplayVersion);
+        assert_eq!(error.exit_code(), 0);
+        assert_eq!(
+            error.to_string(),
+            format!("seatrial {}\n", plumb::version!("SEATRIAL"))
+        );
+    }
 }
