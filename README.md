@@ -123,6 +123,15 @@ cleanup or cancellation cannot report success. Reports are observations, not
 signed attestations; consume the command's exit status as well. Existing files
 are never overwritten. A report write failure is an operational failure.
 
+Reports additionally carry a flat `stages` list: `configuration`, `scene`,
+`selection`, `lane`, `artifacts`, `preparation`, `execution` and `cleanup`.
+Each entry records its start offset from the run, elapsed seconds and `ok`.
+Only stages that started are listed; failures keep their elapsed time, and
+cleanup is measured independently. An execution stage passes only when every
+selected case passes. Case times can overlap during parallel execution;
+stage times are sequential. Total time includes work outside these spans.
+Timing is observational and preserves the command's original result semantics.
+
 Timeout, Ctrl-C and SIGTERM terminate the scene process group and wait for its
 command before lane teardown. Cancellation exits 130. Failed commands retain
 stdout, stderr and status; cleanup errors are reported alongside the original

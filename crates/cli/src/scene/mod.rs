@@ -14,6 +14,12 @@ use std::sync::Arc;
 use std::time::Instant;
 use tokio::task::JoinSet;
 
+struct Batch {
+    group: Arc<stage::Group>,
+    suite: Arc<plan::Suite>,
+    images: Vec<Option<String>>,
+}
+
 pub struct Request<'a> {
     pub pins: &'a Pins,
     pub root: &'a Path,
@@ -25,16 +31,24 @@ pub async fn run(
     stop: Stop,
     record: &mut crate::record::Record,
 ) -> Result<bool, String> {
-    let suites = plan::select(input.root, input.names)?;
+    let start = Instant::now();
+    let selected = plan::select(input.root, input.names);
+    record.stage("selection", start, selected.is_ok());
+    let suites = selected?;
     record.selected = suites
         .iter()
         .flat_map(|suite| suite.scenes.iter().map(|scene| scene.name.clone()))
         .collect();
-    let lane = Arc::new(Lane::open(PathBuf::from(".local"), stop).await?);
+    let start = Instant::now();
+    let opened = Lane::open(PathBuf::from(".local"), stop).await;
+    record.stage("lane", start, opened.is_ok());
+    let lane = Arc::new(opened?);
     record.lane = Some(lane.ns.clone());
     println!("lane    {} (perish.owner=seatrial)", lane.ns);
     let result = execute(input.pins, suites, &lane, record).await;
+    let start = Instant::now();
     let cleanup = lane.finish(Ok(())).await;
+    record.stage("cleanup", start, cleanup.is_ok());
     record.cleanup = Some(cleanup.is_ok());
     match (result, cleanup) {
         (Err(original), Err(cleanup)) => Err(format!("{original}; cleanup: {cleanup}")),
@@ -50,6 +64,19 @@ async fn execute(
     lane: &Arc<Lane>,
     record: &mut crate::record::Record,
 ) -> Result<bool, String> {
+    let batches = prepare(pins, suites, lane, record).await?;
+    let start = Instant::now();
+    let result = cases(batches, lane, record).await;
+    record.stage("execution", start, matches!(&result, Ok(true)));
+    result
+}
+
+async fn prepare(
+    pins: &Pins,
+    suites: Vec<plan::Suite>,
+    lane: &Arc<Lane>,
+    record: &mut crate::record::Record,
+) -> Result<Vec<Batch>, String> {
     let mut products = BTreeSet::new();
     for suite in &suites {
         products.extend(suite.setup.products.iter().cloned());
@@ -57,30 +84,66 @@ async fn execute(
             products.extend(scene.manifest.products.iter().cloned());
         }
     }
-    let env = inputs::prepare(pins, &products, lane, record).await?;
-    let mut batches = Vec::new();
-    for (index, suite) in suites.into_iter().enumerate() {
-        let group = stage::prepare(&suite, lane, &env, index).await?;
-        record.groups.push(crate::record::Group {
-            digest: group.digest.clone(),
-            cases: suite
-                .scenes
-                .iter()
-                .map(|scene| scene.name.clone())
-                .collect(),
-        });
-        let mut images = Vec::new();
-        for scene in &suite.scenes {
-            let image = match &scene.manifest.image {
-                Some(name) => Some(inputs::image(pins, name, lane, record).await?),
-                None => None,
-            };
-            images.push(image);
+    let start = Instant::now();
+    let prepared = inputs::prepare(pins, &products, lane, record).await;
+    record.stage("artifacts", start, prepared.is_ok());
+    let env = prepared?;
+    let start = Instant::now();
+    let result = async {
+        let mut batches = Vec::new();
+        for (index, suite) in suites.into_iter().enumerate() {
+            let group = stage::prepare(&suite, lane, &env, index).await?;
+            record.groups.push(crate::record::Group {
+                digest: group.digest.clone(),
+                cases: suite
+                    .scenes
+                    .iter()
+                    .map(|scene| scene.name.clone())
+                    .collect(),
+            });
+            let images = images(pins, &suite, lane, record).await?;
+            batches.push(Batch {
+                group: Arc::new(group),
+                suite: Arc::new(suite),
+                images,
+            });
         }
-        batches.push((Arc::new(group), Arc::new(suite), images));
+        Ok::<_, String>(batches)
     }
+    .await;
+    record.stage("preparation", start, result.is_ok());
+    result
+}
+
+async fn images(
+    pins: &Pins,
+    suite: &plan::Suite,
+    lane: &Lane,
+    record: &mut crate::record::Record,
+) -> Result<Vec<Option<String>>, String> {
+    let mut images = Vec::new();
+    for scene in &suite.scenes {
+        let image = match &scene.manifest.image {
+            Some(name) => Some(inputs::image(pins, name, lane, record).await?),
+            None => None,
+        };
+        images.push(image);
+    }
+    Ok(images)
+}
+
+async fn cases(
+    batches: Vec<Batch>,
+    lane: &Arc<Lane>,
+    record: &mut crate::record::Record,
+) -> Result<bool, String> {
     let mut set = JoinSet::new();
-    for (group, suite, images) in batches {
+    for Batch {
+        group,
+        suite,
+        images,
+    } in batches
+    {
         for (index, image) in images.into_iter().enumerate() {
             let (group, suite, lane) = (Arc::clone(&group), Arc::clone(&suite), Arc::clone(lane));
             set.spawn(async move { judge(&suite, &group, &lane, (index, image)).await });

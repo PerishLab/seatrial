@@ -5,6 +5,7 @@ mod source;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::time::Instant;
 
 use clap::{Parser, Subcommand};
 
@@ -94,8 +95,14 @@ async fn run(
     stop: seatrial_lib::binary::Stop,
     record: &mut record::Record,
 ) -> Result<bool, String> {
-    let pins = pin::read(&input.pins)?;
-    let root = source::prepare(&pins, input.scenes.as_deref())?;
+    let start = Instant::now();
+    let result = pin::read(&input.pins);
+    record.stage("configuration", start, result.is_ok());
+    let pins = result?;
+    let start = Instant::now();
+    let result = source::prepare(&pins, input.scenes.as_deref());
+    record.stage("scene", start, result.is_ok());
+    let root = result?;
     record.scene = root.depot.as_ref().map(|material| material.pointer.clone());
     if *stop.borrow() {
         return Err("cancelled before execution".into());
@@ -127,5 +134,60 @@ mod tests {
             error.to_string(),
             format!("seatrial {}\n", plumb::version!("SEATRIAL"))
         );
+    }
+
+    #[tokio::test]
+    async fn configuration() {
+        let root = tempfile::tempdir().unwrap();
+        let input = Input {
+            pins: root.path().join("absent.toml"),
+            cases: Vec::new(),
+            scenes: None,
+            report: None,
+        };
+        let mut record = record::Record::open(None).unwrap();
+        let (_, stop) = tokio::sync::watch::channel(false);
+        let error = run(&input, stop, &mut record).await.unwrap_err();
+        assert!(error.contains("absent.toml"));
+        assert_eq!(record.stages.len(), 1);
+        assert_eq!(record.stages[0].name, "configuration");
+        assert!(!record.stages[0].ok);
+        assert!(record.lane.is_none());
+        record.settle(&Err(error), false);
+        assert!(!record.ok);
+    }
+
+    #[tokio::test]
+    async fn selection() {
+        let root = tempfile::tempdir().unwrap();
+        let pins = root.path().join("pins.toml");
+        std::fs::write(&pins, "[images]\n").unwrap();
+        let scenes = root.path().join("scenes");
+        std::fs::create_dir(&scenes).unwrap();
+        let input = Input {
+            pins,
+            cases: Vec::new(),
+            scenes: Some(scenes),
+            report: None,
+        };
+        let mut record = record::Record::open(None).unwrap();
+        let (_, stop) = tokio::sync::watch::channel(false);
+        let error = run(&input, stop, &mut record).await.unwrap_err();
+        assert_eq!(error, "no scenes selected");
+        let stages: Vec<_> = record
+            .stages
+            .iter()
+            .map(|stage| (stage.name, stage.ok))
+            .collect();
+        assert_eq!(
+            stages,
+            [
+                ("configuration", true),
+                ("scene", true),
+                ("selection", false)
+            ]
+        );
+        assert!(record.lane.is_none());
+        assert!(record.cleanup.is_none());
     }
 }

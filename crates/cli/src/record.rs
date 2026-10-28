@@ -37,6 +37,14 @@ pub struct Case {
 }
 
 #[derive(Serialize)]
+pub struct Stage {
+    pub name: &'static str,
+    pub start: f64,
+    pub seconds: f64,
+    pub ok: bool,
+}
+
+#[derive(Serialize)]
 pub struct Record {
     schema: &'static str,
     pub runner: String,
@@ -48,6 +56,7 @@ pub struct Record {
     pub images: Vec<Image>,
     pub selected: Vec<String>,
     pub cases: Vec<Case>,
+    pub stages: Vec<Stage>,
     pub cleanup: Option<bool>,
     pub ok: bool,
     pub state: &'static str,
@@ -86,6 +95,7 @@ impl Record {
             images: Vec::new(),
             selected: Vec::new(),
             cases: Vec::new(),
+            stages: Vec::new(),
             cleanup: None,
             ok: false,
             state: "error",
@@ -94,6 +104,15 @@ impl Record {
             started,
             output,
         })
+    }
+
+    pub fn stage(&mut self, name: &'static str, start: Instant, ok: bool) {
+        self.stages.push(Stage {
+            name,
+            start: start.duration_since(self.started).as_secs_f64(),
+            seconds: start.elapsed().as_secs_f64(),
+            ok,
+        });
     }
 
     pub fn settle(&mut self, result: &Result<bool, String>, cancelled: bool) {
