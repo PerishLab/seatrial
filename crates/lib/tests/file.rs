@@ -51,3 +51,28 @@ fn link() {
             .contains("unsupported")
     );
 }
+
+#[test]
+fn bytes() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("binary");
+    std::fs::write(&path, b"abc").unwrap();
+    assert_eq!(
+        seatrial_lib::file::digest(&path).unwrap(),
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    );
+    let link = root.path().join("alias");
+    std::os::unix::fs::symlink(&path, &link).unwrap();
+    assert!(
+        seatrial_lib::file::digest(&link)
+            .unwrap_err()
+            .contains("unsupported")
+    );
+    let socket = root.path().join("socket");
+    let _listener = std::os::unix::net::UnixListener::bind(&socket).unwrap();
+    assert!(
+        seatrial_lib::file::digest(&socket)
+            .unwrap_err()
+            .contains("unsupported")
+    );
+}

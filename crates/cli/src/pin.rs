@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Pins {
+    pub scenes: Option<seatrial_lib::depot::Source>,
     #[serde(flatten)]
     pub products: std::collections::BTreeMap<String, Channel>,
     pub images: std::collections::BTreeMap<String, String>,

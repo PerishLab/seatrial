@@ -14,6 +14,7 @@ pub struct Release {
     pub version: String,
     pub commit: String,
     pub archive: String,
+    pub seal: String,
     pub executables: BTreeMap<String, String>,
 }
 
@@ -44,10 +45,28 @@ pub async fn fetch(
     };
     let bytes = probe::fetch(lane, url).await?;
     check(&bytes, sha, "seal")?;
+    let sealing = sha.to_string();
     let seal = parse(&bytes, "seal")?;
-    if seal["releaseVersion"] != version || seal["channel"] != channel {
+    if seal["schema"] != 1 {
+        return Err("unsupported release seal schema".into());
+    }
+    let identity = (
+        seal["product"].as_str(),
+        seal["releaseVersion"].as_str(),
+        seal["channel"].as_str(),
+    );
+    if identity != (Some(product.name), Some(version), Some(channel)) {
         return Err(format!("the seal is not {version} on {channel}"));
     }
+    let commit = seal["commit"]
+        .as_str()
+        .filter(|value| {
+            value.len() == 40
+                && value
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        })
+        .ok_or("seal names no canonical Git commit")?;
     let artifact = &seal["artifacts"]["linux-x64"];
     let (Some(sha), Some(url)) = (artifact["sha256"].as_str(), artifact["url"].as_str()) else {
         return Err("seal names no linux-x64 artifact".into());
@@ -73,8 +92,9 @@ pub async fn fetch(
     }
     Ok(Release {
         version: version.into(),
-        commit: seal["commit"].as_str().unwrap_or_default().into(),
+        commit: commit.into(),
         archive: sha.into(),
+        seal: sealing,
         executables,
     })
 }
