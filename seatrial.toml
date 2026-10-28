@@ -26,3 +26,11 @@ authority = "https://releases.dynet.perish.uk"
 authority = "https://depot.seatrial.perish.uk"
 product = "seatrial"
 channel = "stable"
+
+[hardrig]
+channel = "stable"
+authority = "https://releases.hardrig.perish.uk"
+
+[runseal]
+channel = "stable"
+authority = "https://releases.runseal.perish.uk"

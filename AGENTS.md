@@ -59,3 +59,15 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   `seatrial-keel` auxiliary binary; its product logic stays outside the CLI.
 - `seatrial.toml` — what a run trials.
 - `.runseal` — committed inert Runseal resources.
+
+## Hardrig Tencent Scene
+
+scenes/hardrig owns the optional real-account provider observation scene.
+It drives released Hardrig and Runseal CLIs only, using explicit nonsecret
+expected account/principal and a read-only seed path. Opaque custody bytes are
+copied only into the lane's private case volume; the original is never parsed
+by scene code or modified. Products follow stable channels, and the existing
+Plumb product supplies the verified execution image. No generic runner or
+product test endpoint is added. The scene records current inventory/catalog
+facts and honest procurement unknowns, then relies on the normal labelled
+lane teardown. It never becomes part of Guard or the default live suite.
