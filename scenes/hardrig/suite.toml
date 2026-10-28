@@ -1,0 +1,3 @@
+default = false
+products = ["hardrig", "runseal", "plumb"]
+timeout = 300

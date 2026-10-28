@@ -1,0 +1,4 @@
+default = false
+image = "plumb"
+timeout = 300
+command = ["sh", "-eu", "tencent.run.sh"]
