@@ -21,6 +21,10 @@ seatrial-lib = { path = "../lib" }
 tempfile.workspace = true
 
 [[bin]]
+name = "seatrial"
+path = "src/main.rs"
+
+[[bin]]
 name = "seatrial-keel"
 path = "../../scenes/keel/src/main.rs"
 

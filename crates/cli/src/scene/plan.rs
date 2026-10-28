@@ -29,8 +29,16 @@ pub struct Suite {
 
 pub fn select(root: &Path, names: &[String]) -> Result<Vec<Suite>, String> {
     let root = root.canonicalize().map_err(|error| error.to_string())?;
-    let mut scenes = Vec::new();
-    discover(&root, &root, &mut scenes)?;
+    let indexed = super::bundle::read(&root)?;
+    let explicit = indexed.is_some();
+    let scenes = match indexed {
+        Some(scenes) => scenes,
+        None => {
+            let mut scenes = Vec::new();
+            discover(&root, &root, &mut scenes)?;
+            scenes
+        }
+    };
     let mut selected = BTreeSet::new();
     for name in names {
         let matches: Vec<_> = scenes
@@ -56,7 +64,7 @@ pub fn select(root: &Path, names: &[String]) -> Result<Vec<Suite>, String> {
         let source = source(&root, &scene.path)?;
         let setup = setup(&source)?;
         let take = match names.is_empty() {
-            true => setup.default && scene.manifest.default,
+            true => (explicit || setup.default) && scene.manifest.default,
             false => selected.contains(&scene.name),
         };
         if !take {
@@ -92,7 +100,9 @@ fn discover(root: &Path, path: &Path, scenes: &mut Vec<Scene>) -> Result<(), Str
             return Err(format!("unsupported scene file type: {}", path.display()));
         } else if kind.is_file()
             && path.extension().is_some_and(|suffix| suffix == "toml")
-            && path.file_name().is_some_and(|name| name != "suite.toml")
+            && path
+                .file_name()
+                .is_some_and(|name| name != "suite.toml" && name != "bundle.toml")
         {
             let relative = path
                 .strip_prefix(root)

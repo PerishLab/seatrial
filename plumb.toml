@@ -33,3 +33,8 @@ note = "Product-owned black-box scene manifests, programs and Rust drivers."
 
 [identity]
 ns = "seatrial"
+
+[release]
+authority = "https://releases.seatrial.perish.uk"
+binaries = ["seatrial"]
+targets = ["x86_64-unknown-linux-gnu"]
