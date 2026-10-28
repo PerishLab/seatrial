@@ -11,13 +11,26 @@ published, and teardown leaves nothing labelled with the lane.
 
 ## Running
 
-On Linux with Docker:
+On Linux with Docker, use the distributed generic `seatrial` executable and a
+`seatrial.toml` configuration:
 
 ```sh
-cargo run --release -- run
-cargo run --release -- run --case sudo --case restart
-cargo run --release -- run --case writer
-cargo run --release -- run --case plumb/follow/writer
+seatrial run --report result.json
+seatrial run --case writer --report writer.json
+```
+
+The default scene source is `[scenes]` in that configuration. It resolves the
+Depot channel once, verifies its version standing, generation and object bytes,
+and executes the resulting temporary material. The pilot follows the stable
+scene channel and Plumb's published `rc` channel independently. A missing,
+inconsistent or unreadable source refuses; it never falls back to a checkout.
+The host needs no Rust toolchain for the portable writer bundle.
+
+For scene development, select an explicit local root:
+
+```sh
+cargo run --release -- run --scenes scenes --case sudo --case restart
+cargo run --release -- run --scenes scenes/plumb/follow --case writer
 ```
 
 The CLI lives in `crates/cli`; `crates/lib` supplies scene-independent
@@ -28,8 +41,9 @@ black-box driver lives under `scenes/keel/src`, compiled as the separate
 `scenes/plumb/follow/writer.toml` selects the writer scene. `writer` remains
 its short alias. A scene command runs on the host from a fresh snapshot of
 the manifest's directory; adjacent scripts may drive Docker and other tools
-directly. `--scenes <directory>` selects another scene root. Several scenes can be selected in one invocation. Without `--case`, the
-default suite selects the same 28 Keel cases and 48 storage instances. Short
+directly. `--scenes <directory>` selects a local scene root. Several scenes can be
+selected in one invocation. With `--scenes scenes` and no `--case`, the legacy
+suite selects the same 28 Keel cases and 48 storage instances. Short
 names resolve only when unique; otherwise use the qualified scene path.
 
 ```toml
@@ -69,11 +83,11 @@ without `--case`, their manifest `default` values select the run. An excluded
 case remains explicitly selectable. Group preparation still uses the nearest
 `suite.toml`. The legacy repository-wide catalog keeps its existing defaults.
 For example, `--scenes scenes/plumb/follow` selects the portable writer root,
-while the default repository root still selects the 48 Keel instances.
+while explicitly selecting the repository root keeps the 48 Keel instances.
 
 The release declaration ships only the generic Linux `seatrial` executable.
 The auxiliary product drivers remain development inputs during migration.
-Actual runner distribution and Depot consumption are tracked in
+Runner distribution and Depot consumption are tracked in
 [the independent writer pilot](https://github.com/PerishLab/seatrial/issues/32).
 
 A nearest `suite.toml` groups cases and optionally declares one `prepare`
@@ -98,6 +112,16 @@ is part of the invocation's overall cost. Existing Rust assertions, recovery
 loops and race barriers remain in the scene program and use public product
 interfaces. Guard compiles this auxiliary target and tests the runner without
 running the Docker suite.
+
+`--report <NEW_FILE>` reserves a new file with owner-only permissions and writes
+one JSON `seatrial.run/v1` report at completion, including preparation failures.
+It records the running binary's SHA-256, platform, resolved scene pointer,
+executed group snapshots, product channel/version/commit/seal/archive digests,
+selected runtime image digests, case verdicts and elapsed times, and the lane's
+cleanup result. Local scenes have no Depot pointer. An incomplete run, failed
+cleanup or cancellation cannot report success. Reports are observations, not
+signed attestations; consume the command's exit status as well. Existing files
+are never overwritten. A report write failure is an operational failure.
 
 Timeout, Ctrl-C and SIGTERM terminate the scene process group and wait for its
 command before lane teardown. Cancellation exits 130. Failed commands retain
@@ -218,7 +242,7 @@ PerishLab/.github#136).
 
 ## Encrypted Dynet control
 
-`cargo run -- run --case dynet/control` explicitly selects the coupled Dynet and
+`cargo run -- run --scenes scenes --case dynet/control` explicitly selects the coupled Dynet and
 Secrets trial. It follows their configured channels and the existing Plumb
 runtime image, records artifact/image identities and builds its own small Rust
 DNS fixture. The host needs `jq`, `rg`, Docker and `/dev/net/tun`; the client

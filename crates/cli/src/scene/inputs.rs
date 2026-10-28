@@ -8,6 +8,7 @@ pub async fn prepare(
     pins: &Pins,
     products: &BTreeSet<String>,
     lane: &Lane,
+    record: &mut crate::record::Record,
 ) -> Result<Vec<(String, String)>, String> {
     let mut env = Vec::new();
     for (name, image) in &pins.images {
@@ -50,6 +51,14 @@ pub async fn prepare(
             "binary  {name} {} at {}, archive sha256:{}",
             release.version, release.commit, release.archive
         );
+        record.products.push(crate::record::Artifact {
+            name: name.clone(),
+            channel: channel.channel.clone(),
+            version: release.version.clone(),
+            commit: release.commit.clone(),
+            seal: release.seal.clone(),
+            archive: release.archive.clone(),
+        });
         env.push((
             format!("SEATRIAL_BINARY_{}", name.to_ascii_uppercase()),
             path.display().to_string(),
@@ -72,7 +81,15 @@ pub async fn prepare(
     Ok(env)
 }
 
-pub async fn image(pins: &Pins, name: &str, lane: &Lane) -> Result<String, String> {
+pub async fn image(
+    pins: &Pins,
+    name: &str,
+    lane: &Lane,
+    record: &mut crate::record::Record,
+) -> Result<String, String> {
+    if let Some(image) = record.images.iter().find(|image| image.name == name) {
+        return Ok(image.digest.clone());
+    }
     let image = pins
         .products
         .get(name)
@@ -92,8 +109,25 @@ pub async fn image(pins: &Pins, name: &str, lane: &Lane) -> Result<String, Strin
     }
     .must()
     .await?;
-    println!("image   {}", digest.text());
-    Ok(image.clone())
+    let resolved = digest.text().trim().to_string();
+    let sha = resolved
+        .split_once("@sha256:")
+        .map(|(_, sha)| sha)
+        .ok_or("runtime image has no immutable digest")?;
+    if sha.len() != 64
+        || !sha
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        return Err("runtime image digest is invalid".into());
+    }
+    println!("image   {resolved}");
+    record.images.push(crate::record::Image {
+        name: name.into(),
+        reference: image.clone(),
+        digest: resolved.clone(),
+    });
+    Ok(resolved)
 }
 
 async fn pull(lane: &Lane, image: &str) -> Result<(), String> {

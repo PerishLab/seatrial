@@ -21,7 +21,14 @@ pub fn snapshot(source: &Path, destination: &Path) -> Result<String, String> {
 pub fn digest(path: &Path) -> Result<String, String> {
     use sha2::Digest;
     let mut digest = sha2::Sha256::new();
-    hash(path, path, &mut digest)?;
+    let metadata = std::fs::symlink_metadata(path).map_err(|error| error.to_string())?;
+    if metadata.is_file() {
+        digest.update(std::fs::read(path).map_err(|error| error.to_string())?);
+    } else if metadata.is_dir() {
+        hash(path, path, &mut digest)?;
+    } else {
+        return Err(format!("unsupported file type: {}", path.display()));
+    }
     Ok(format!("{:x}", digest.finalize()))
 }
 
@@ -69,6 +76,9 @@ fn hash(root: &Path, path: &Path, digest: &mut sha2::Sha256) -> Result<(), Strin
             digest.update(b"directory");
             hash(root, &path, digest)?;
             continue;
+        }
+        if !metadata.is_file() {
+            return Err(format!("unsupported file type: {}", path.display()));
         }
         let bytes = std::fs::read(&path).map_err(|error| error.to_string())?;
         digest.update(b"file");

@@ -19,6 +19,10 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   and digests it actually ran. Third-party images are pinned by exact tag.
   The pointer's seal and every downloaded artifact are checked against their
   digests before anything runs.
+- Scenes resolve independently from `[scenes]` through Depot. The channel
+  pointer must equal its verified version standing; no checkout fallback exists.
+  `--scenes` is an explicit local development override. Reports bind the running
+  binary, resolved materials and execution/cleanup outcomes; they are observations.
 - Every run is one lane, `st<hex>`. Each container, network and volume carries
   `perish.owner=seatrial` and `perish.lane=<ns>`. No host port is published:
   a case reaches an executable from the in-lane probe, and an executable a
