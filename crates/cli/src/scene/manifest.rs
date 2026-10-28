@@ -26,14 +26,16 @@ pub struct Scene {
 }
 
 pub fn load(root: &Path, name: &str) -> Result<Scene, String> {
-    if !Path::new(name)
-        .components()
-        .all(|part| matches!(part, Component::Normal(_)))
+    if name.is_empty()
+        || name.contains('\\')
+        || !Path::new(name)
+            .components()
+            .all(|part| matches!(part, Component::Normal(_)))
     {
         return Err(format!("invalid scene name {name}"));
     }
     let root = root.canonicalize().map_err(|error| error.to_string())?;
-    let path = root.join(name).with_extension("toml");
+    let path = root.join(format!("{name}.toml"));
     let path = path
         .canonicalize()
         .map_err(|error| format!("{}: {error}", path.display()))?;

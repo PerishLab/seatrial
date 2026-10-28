@@ -54,6 +54,28 @@ Snapshot identity includes adjacent file names, contents and permissions;
 symbolic links and special files are refused. Scene code owns its business
 setup and assertions. The writer's original business script is unchanged.
 
+A portable scene root can declare its entry points in `bundle.toml`:
+
+```toml
+format = 1
+cases = ["writer"]
+```
+
+Case names are relative paths without the final `.toml`. Only the listed
+manifests are parsed; adjacent TOML files can remain ordinary scene assets.
+Unknown formats or fields, empty or repeated entries, missing cases and escaping
+paths refuse before execution. The bundle's listed cases form its catalog;
+without `--case`, their manifest `default` values select the run. An excluded
+case remains explicitly selectable. Group preparation still uses the nearest
+`suite.toml`. The legacy repository-wide catalog keeps its existing defaults.
+For example, `--scenes scenes/plumb/follow` selects the portable writer root,
+while the default repository root still selects the 48 Keel instances.
+
+The release declaration ships only the generic Linux `seatrial` executable.
+The auxiliary product drivers remain development inputs during migration.
+Actual runner distribution and Depot consumption are tracked in
+[the independent writer pilot](https://github.com/PerishLab/seatrial/issues/32).
+
 A nearest `suite.toml` groups cases and optionally declares one `prepare`
 command, its command timeout, shared `products` and `default = true`. The runner
 prepares every selected group before starting its cases concurrently, using
