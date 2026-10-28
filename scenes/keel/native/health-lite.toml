@@ -1,0 +1,4 @@
+products = ["keel"]
+image = "keel"
+timeout = 120
+command = ["sh", "-eu", "case.sh", "health"]
