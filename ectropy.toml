@@ -9,7 +9,7 @@ paths = [
 syntax = "test"
 
 [[grant]]
-paths = ["crates/*/tests/**/*.rs"]
+paths = ["crates/*/tests/**/*.rs", "scenes/radicula/src/**/*.rs", "scenes/radicula/*.py"]
 syntax = "environment"
 
 [limit]
@@ -29,7 +29,7 @@ roots = [
 
 [scan]
 exclude = ["**/target/**"]
-include = ["crates/**/*.rs", "scenes/*/**/*.rs"]
+include = ["crates/**/*.rs", "scenes/*/**/*.rs", "scenes/*/**/*.py"]
 
 [word]
 single = true

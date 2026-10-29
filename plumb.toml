@@ -28,7 +28,7 @@ note = "Cargo registry configuration."
 
 [[layout.seat]]
 path = "scenes/*"
-scan = ["scenes/*/**/*.rs"]
+scan = ["scenes/*/**/*.rs", "scenes/*/**/*.py"]
 note = "Product-owned black-box scene manifests, programs and Rust drivers."
 
 [identity]
