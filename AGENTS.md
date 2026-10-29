@@ -12,7 +12,9 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 
 - Cases are black-box. They drive executables only through HTTP, CLI, wire
   protocols and files an executable is documented to read. Seatrial never
-  depends on a product crate.
+  depends on a product crate, except for the canonical governance’s narrow pure-public-library
+  conformance exception. `scenes/radicula` owns its separate program and links only
+  the library’s public API; the generic runner has no Radicula dependency.
 - `seatrial.toml` names what a run trials. A first-party product is followed
   by channel, never pinned: the run resolves the channel pointer at
   `<authority>/v1/channels/<channel>.json` and records the version, commit
