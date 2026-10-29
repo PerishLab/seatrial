@@ -9,9 +9,12 @@ Run the formal Seatrial executable with `--scenes scenes/radicula --case redis`.
 The host needs Docker, Python 3.12+, Cargo/Rust and curl. The preparation step
 materializes `Cargo.toml.in` as a separate build project and builds the scene program in the lane work directory, following the public
 Perish registry with requirement `0`, recording the complete Cargo resolution,
-lock checksum and resulting executable checksum. It verifies the current stable
-pointer's seal digest, complete distribution and packaged Git identity before
-using the package. A changed pointer during preparation refuses. The helper's
+lock checksum and resulting executable checksum. It verifies the latest stable
+Cargo index entry and checksum, complete distribution and packaged Git identity
+before using the package. Published VCS identity binds Wharf's Cargo snapshot,
+whose source identity must match the distribution record; it is not assumed to
+equal the original source commit. Every packaged file is compared with the
+actual Cargo cache used for compilation. A changed index during preparation refuses. The helper's
 build does not install anything on the host or alter the scene source.
 
 `SEATRIAL_RADICULA_CANDIDATE` explicitly opts into a clean committed source tree

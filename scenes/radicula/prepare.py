@@ -1,3 +1,4 @@
+import published
 import hashlib
 import json
 import io
@@ -34,32 +35,17 @@ subprocess.run(base + ["generate-lockfile"], cwd=project, check=True, timeout=12
 metadata = subprocess.check_output(base + ["metadata", "--locked", "--format-version", "1"], cwd=project, timeout=120)
 (work / "conformance-metadata.json").write_bytes(metadata)
 packages = json.loads(metadata)["packages"]
-root = next(package for package in packages if package["name"] == "radicula-lock")
+resolution = tomllib.loads((project / "Cargo.lock").read_text())["package"]
 if not candidate:
-    assert root["source"] == "registry+sparse+https://cargo.perish.uk/"
-    def raw(url):
-        return subprocess.check_output(["curl", "--fail", "--silent", "--show-error", "--retry", "2", "--max-time", "30", url])
-    def fetch(url):
-        return json.loads(raw(url))
-    authority = "https://releases.radicula.perish.uk"
-    pointer = fetch(authority + "/v1/channels/stable.json")
-    seal = raw(pointer["seal"]["url"])
-    assert len(seal) == pointer["seal"]["size"]
-    assert hashlib.sha256(seal).hexdigest() == pointer["seal"]["sha256"]
-    seal = json.loads(seal)
-    assert seal["commit"] == pointer["commit"]
-    marker = "v" + root["version"]
-    assert pointer["releaseVersion"].lstrip("v") == root["version"]
-    distribution = fetch(authority + "/v1/releases/stable/" + marker + "/distribution.json")
-    assert distribution["state"] == "complete"
-    vcs = json.loads((pathlib.Path(root["manifest_path"]).parent / ".cargo_vcs_info.json").read_text())
-    assert vcs["git"]["sha1"] == distribution["commit"]
-    identity.update({"package": root["name"], "version": root["version"], "source": distribution["commit"], "pointer": pointer, "distribution": distribution, "seal": seal})
+    identities = [published.verify(package, resolution) for package in packages if package["name"] in ["radicula-lock", "radicula-lock-macros"]]
+    assert len(identities) == 2
+    identity["packages"] = identities
 subprocess.run(base + ["build", "--locked", "--target-dir", str(work / "target")], cwd=project, check=True, timeout=120)
 binary = work / "target/debug/seatrial-radicula"
 identity.update({"binarySha256": hashlib.sha256(binary.read_bytes()).hexdigest(), "lockSha256": hashlib.sha256((project / "Cargo.lock").read_bytes()).hexdigest()})
-identity["resolution"] = tomllib.loads((project / "Cargo.lock").read_text())["package"]
+identity["resolution"] = resolution
 if not candidate:
-    assert fetch(authority + "/v1/channels/stable.json") == pointer
+    for package in identities:
+        assert published.latest(package["name"]) == package["index"]
 (work / "conformance-identity.json").write_text(json.dumps(identity, indent=2))
 print(json.dumps(identity))
