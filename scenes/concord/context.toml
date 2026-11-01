@@ -1,0 +1,4 @@
+products = ["concord"]
+image = "concord"
+timeout = 180
+command = ["sh", "-eu", "case.run.sh", "context"]

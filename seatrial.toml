@@ -40,3 +40,8 @@ authority = "https://releases.runseal.perish.uk"
 [ectropy]
 channel = "stable"
 authority = "https://releases.ectropy.perish.uk"
+
+[concord]
+channel = "rc"
+authority = "https://releases.concord.perish.uk"
+image = "ghcr.io/perishlab/images:stable"
