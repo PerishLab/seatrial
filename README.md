@@ -30,7 +30,7 @@ For scene development, select an explicit local root:
 
 ```sh
 cargo run --release -- run --scenes scenes --case sudo --case restart
-cargo run --release -- run --scenes scenes/plumb/follow --case writer
+cargo run --release -- run --scenes scenes/plumb --case writer
 ```
 
 The CLI lives in `crates/cli`; `crates/lib` supplies scene-independent
@@ -38,7 +38,7 @@ execution, artifact verification, file snapshots and lane management. Keel's
 black-box driver lives under `scenes/keel/src`, compiled as the separate
 `seatrial-keel` auxiliary executable. Product-specific code stays in scenes.
 
-`scenes/plumb/follow/writer.toml` selects the writer scene. `writer` remains
+`scenes/plumb/writer.toml` selects the writer scene. `writer` remains
 its short alias. A scene command runs on the host from a fresh snapshot of
 the manifest's directory; adjacent scripts may drive Docker and other tools
 directly. `--scenes <directory>` selects a local scene root. Several scenes can be
@@ -82,7 +82,7 @@ paths refuse before execution. The bundle's listed cases form its catalog;
 without `--case`, their manifest `default` values select the run. An excluded
 case remains explicitly selectable. Group preparation still uses the nearest
 `suite.toml`. The legacy repository-wide catalog keeps its existing defaults.
-For example, `--scenes scenes/plumb/follow` selects the portable writer root,
+For example, `--scenes scenes/plumb` selects the portable writer root,
 while explicitly selecting the repository root keeps the 48 Keel instances.
 
 The release declaration ships only the generic Linux `seatrial` executable.

@@ -36,3 +36,7 @@ authority = "https://releases.hardrig.perish.uk"
 [runseal]
 channel = "stable"
 authority = "https://releases.runseal.perish.uk"
+
+[ectropy]
+channel = "stable"
+authority = "https://releases.ectropy.perish.uk"
