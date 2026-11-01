@@ -31,7 +31,7 @@ fn aliases() {
     assert_eq!(suites[0].scenes.len(), 1);
     assert_eq!(suites[0].scenes[0].name, "keel/core/health");
     let writer = select(Path::new("../../scenes"), &["writer".into()]).unwrap();
-    assert_eq!(writer[0].scenes[0].name, "plumb/follow/writer");
+    assert_eq!(writer[0].scenes[0].name, "plumb/writer");
 }
 
 #[test]
@@ -140,10 +140,23 @@ fn defaults() {
 
 #[test]
 fn writer() {
-    let suites = select(Path::new("../../scenes/plumb/follow"), &[]).unwrap();
+    let suites = select(Path::new("../../scenes/plumb"), &[]).unwrap();
     assert_eq!(suites.len(), 1);
     assert_eq!(suites[0].scenes[0].name, "writer");
     assert_eq!(suites[0].scenes[0].manifest.products, ["plumb"]);
+    let optional = select(
+        Path::new("../../scenes/plumb"),
+        &["lock/joint".into(), "lock/required".into()],
+    )
+    .unwrap();
+    assert_eq!(optional.len(), 1);
+    assert!(optional[0].source.ends_with("lock"));
+    assert_eq!(optional[0].scenes.len(), 2);
+    for scene in &optional[0].scenes {
+        assert!(!scene.manifest.default);
+        assert_eq!(scene.manifest.products, ["plumb", "ectropy"]);
+        assert_eq!(scene.manifest.image.as_deref(), Some("plumb"));
+    }
 }
 
 #[cfg(unix)]

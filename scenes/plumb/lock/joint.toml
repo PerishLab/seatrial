@@ -1,0 +1,5 @@
+products = ["plumb", "ectropy"]
+image = "plumb"
+timeout = 300
+default = false
+command = ["sh", "-eu", "lane.sh", "joint"]
