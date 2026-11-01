@@ -12,6 +12,10 @@ syntax = "test"
 paths = ["crates/*/tests/**/*.rs", "scenes/radicula/src/**/*.rs", "scenes/radicula/*.py"]
 syntax = "environment"
 
+[[grant]]
+paths = ["scenes/concord/provider.py"]
+syntax = "environment"
+
 [limit]
 block = 4
 fanout = 10
