@@ -30,5 +30,5 @@ def run(repository):
         fixture.record(passed)
 
 
-for repository in ["PerishLab/plumb", "PerishLab/runseal", "PerishLab/locus"]:
+for repository in ["PerishLab/plumb", "PerishLab/runseal", "PerishLab/locus", "PerishLab/santi"]:
     run(repository)

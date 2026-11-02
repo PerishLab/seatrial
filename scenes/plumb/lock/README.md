@@ -29,7 +29,7 @@ lockfile evidence may still require a new version-sensitive human review;
 that separate strict boundary is covered by Plumb's source regressions.
 
 `required` additionally requires the Plumb artifact's carried policy to select
-`PerishLab/plumb`, `PerishLab/runseal` and `PerishLab/locus` with default and
+`PerishLab/plumb`, `PerishLab/runseal`, `PerishLab/locus` and `PerishLab/santi` with default and
 all-features coverage.
 It checks each identity in an independent synthetic source repository and diagnostic
 namespace, recording the repository with its observations. It refuses deleted
@@ -55,6 +55,12 @@ must fail this prospective case, with their failure and cleanup retained.
 Seatrial #55 corrects its overstrong ordinary-Rust refresh assertion discovered
 by the first formal Plumb v0.124.0-rc.1 run. Lock/Ectropy freshness, full-tree
 changes and all existing refusal checks remain mandatory.
+
+Seatrial #57 adds Santi as a fourth independent required identity for Plumb #545.
+Plumb v0.124.0 lacks this carried scope and must fail the Santi refusal checks.
+Santi's separate source opt-in does not supply carried required protection.
+Plumb #545 owns the containing RC/stable positive, installation, actual Santi
+consumer verification and subsequent real Plumb landing obligations.
 
 The parent Plumb bundle retains the canonical writer case ID and adds lock/joint and
 lock/required. Plumb follows its non-stable channel, Ectropy its current stable
