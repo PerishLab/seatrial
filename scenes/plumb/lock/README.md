@@ -15,7 +15,8 @@ are compiled, never executed; this proves admission behavior, not lock
 algorithms, business roles or cleanup safety.
 
 `required` additionally requires the Plumb artifact's carried policy to select
-both `PerishLab/plumb` and `PerishLab/runseal` with default and all-features coverage.
+`PerishLab/plumb`, `PerishLab/runseal` and `PerishLab/locus` with default and
+all-features coverage.
 It checks each identity in an independent synthetic source repository and diagnostic
 namespace, recording the repository with its observations. It refuses deleted
 or disabled declarations, either narrowed feature selection and missing Ectropy
@@ -27,12 +28,12 @@ combination. Missing support or a missing carried scope fails; it is never
 skipped into a pass. These prospective cases are not Bug exceptions against
 older products that never promised the capability. Source delivery does not
 establish scene distribution, successful formal execution or promotion.
-Seatrial #45 owns this source result; Plumb #528 retains those execution,
-activation and actual landing obligations under the global .github #152 plan.
-Seatrial #49 extends the source assertions to Runseal; Plumb #534 retains its
-distributed scene, formal combination, activation and landing obligations. A
-Plumb artifact selecting only the original Plumb scope cannot pass this extended
-required scene. Existing historical passes retain their exact scene identity.
+Seatrial #45 and #49 introduced the original Plumb and Runseal assertions;
+their execution lineage is Plumb #528 and #534 under the global .github #152 plan.
+Seatrial #51 adds Locus assertions; Plumb #536 owns the extended scene's formal
+distribution, tool combination, activation and landing evidence. An older
+artifact missing any required scope cannot pass this extended scene. Historical
+passes retain their exact scene and tool identities.
 
 The parent Plumb bundle retains the canonical writer case ID and adds lock/joint and
 lock/required. Plumb follows its non-stable channel, Ectropy its current stable
