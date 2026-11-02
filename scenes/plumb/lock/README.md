@@ -19,7 +19,10 @@ small local diagnostic dependency before collecting native references, then
 changes only that dependency's version and Cargo.lock. Both feature selections
 must compile again with identical human dispositions and references while the
 complete tree and measured lockfile digests differ. The following Guard must
-refresh Rust, lock and Ectropy actions rather than reuse the old exact proof.
+refresh lock and Ectropy actions, bind the changed complete tree and refuse
+reuse of the old exact proof. The ordinary Rust action follows its own input
+identity and reuse policy; the scene records whether it is reused without
+requiring either outcome.
 Protocol-evidence refusal and every previous syntax/admission assertion remain.
 The fixture does not modify dispositions to make the new world pass. Explicit
 lockfile evidence may still require a new version-sensitive human review;
@@ -49,6 +52,9 @@ Seatrial #53 adds dependency-world assertions for Plumb #541; its source merge
 does not settle that parent's formal scene distribution, RC/stable positive,
 installation or subsequent real landing obligations. Older tools without v2
 must fail this prospective case, with their failure and cleanup retained.
+Seatrial #55 corrects its overstrong ordinary-Rust refresh assertion discovered
+by the first formal Plumb v0.124.0-rc.1 run. Lock/Ectropy freshness, full-tree
+changes and all existing refusal checks remain mandatory.
 
 The parent Plumb bundle retains the canonical writer case ID and adds lock/joint and
 lock/required. Plumb follows its non-stable channel, Ectropy its current stable

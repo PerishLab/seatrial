@@ -48,10 +48,11 @@ try:
         assert old["tree"] != new["tree"] and old["lockfile"] == previous and new["lockfile"] == current
         assert old["lockfile"] != new["lockfile"]
     refreshed = success(fixture.guard())
-    for name in ["guard/rust", "guard/lock", "guard/ectropy"]:
-        assert action(refreshed, name) != action(reviewed, name)
+    assert refreshed["tree"] != reviewed["tree"], "dependency world reused the complete protected tree"
+    for name in ["guard/lock", "guard/ectropy"]:
+        assert action(refreshed, name) != action(reviewed, name), f"{name} did not refresh for the dependency world"
     assert not any(event["kind"] == "guard.reused" for event in fixture.events)
-    fixture.records.append({"operation": "dependency-world", "same_dispositions": True, "references": after["references"], "before": [{"tree": report["tree"], "lockfile": report["lockfile"]} for report in before["reports"]], "after": [{"tree": report["tree"], "lockfile": report["lockfile"]} for report in after["reports"]]})
+    fixture.records.append({"operation": "dependency-world", "same_dispositions": True, "ordinary_rust_reused": action(refreshed, "guard/rust") == action(reviewed, "guard/rust"), "references": after["references"], "before": [{"tree": report["tree"], "lockfile": report["lockfile"]} for report in before["reports"]], "after": [{"tree": report["tree"], "lockfile": report["lockfile"]} for report in after["reports"]]})
     reviewed = refreshed
     protocol = (fixture.root / "protocol.txt").read_text()
     fixture.write("protocol.txt", "changed protocol without a fresh disposition\n")
