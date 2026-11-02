@@ -14,6 +14,17 @@ file grant participation, and directory-grant refusal. Native fixture helpers
 are compiled, never executed; this proves admission behavior, not lock
 algorithms, business roles or cleanup safety.
 
+The extended joint case requires v2 source-reference/review reports. It adds a
+small local diagnostic dependency before collecting native references, then
+changes only that dependency's version and Cargo.lock. Both feature selections
+must compile again with identical human dispositions and references while the
+complete tree and measured lockfile digests differ. The following Guard must
+refresh Rust, lock and Ectropy actions rather than reuse the old exact proof.
+Protocol-evidence refusal and every previous syntax/admission assertion remain.
+The fixture does not modify dispositions to make the new world pass. Explicit
+lockfile evidence may still require a new version-sensitive human review;
+that separate strict boundary is covered by Plumb's source regressions.
+
 `required` additionally requires the Plumb artifact's carried policy to select
 `PerishLab/plumb`, `PerishLab/runseal` and `PerishLab/locus` with default and
 all-features coverage.
@@ -34,6 +45,10 @@ Seatrial #51 adds Locus assertions; Plumb #536 owns the extended scene's formal
 distribution, tool combination, activation and landing evidence. An older
 artifact missing any required scope cannot pass this extended scene. Historical
 passes retain their exact scene and tool identities.
+Seatrial #53 adds dependency-world assertions for Plumb #541; its source merge
+does not settle that parent's formal scene distribution, RC/stable positive,
+installation or subsequent real landing obligations. Older tools without v2
+must fail this prospective case, with their failure and cleanup retained.
 
 The parent Plumb bundle retains the canonical writer case ID and adds lock/joint and
 lock/required. Plumb follows its non-stable channel, Ectropy its current stable
