@@ -6,8 +6,9 @@ import subprocess
 
 class Fixture:
     def __init__(self, repository, versions):
-        self.root = pathlib.Path("/trial/source")
-        self.root.mkdir()
+        self.repository = repository
+        self.root = pathlib.Path("/trial/source") / repository
+        self.root.mkdir(parents=True)
         self.records = []
         self.dispositions = []
         self.sequence = 0
@@ -64,7 +65,7 @@ class Fixture:
 
     def guard(self):
         self.sequence += 1
-        diagnostic = pathlib.Path("/trial/diagnostic." + str(self.sequence) + ".jsonl")
+        diagnostic = self.root.parent / ("diagnostic." + self.root.name + "." + str(self.sequence) + ".jsonl")
         value = self.call("plumb", "guard", ".", "--json", "--diagnostic", str(diagnostic))
         self.events = [json.loads(line) for line in diagnostic.read_text().splitlines()] if diagnostic.exists() else []
         self.records.append({"operation": "guard", "exit": value.returncode, "events": [event["kind"] for event in self.events]})
@@ -85,7 +86,7 @@ class Fixture:
         self.stage()
 
     def record(self, status):
-        print(json.dumps({"kind": "formal-tool conformance observation", "ok": status, "products": self.products, "host": self.host, "operations": self.records, "guarded_fixture": "local synthetic repository, not actual GitHub landing", "qualification": "runner and trusted publisher own full identity/coverage/cleanup qualification"}), flush=True)
+        print(json.dumps({"kind": "formal-tool conformance observation", "repository": self.repository, "ok": status, "products": self.products, "host": self.host, "operations": self.records, "guarded_fixture": "local synthetic repository, not actual GitHub landing", "qualification": "runner and trusted publisher own full identity/coverage/cleanup qualification"}), flush=True)
 
 
 def success(value):

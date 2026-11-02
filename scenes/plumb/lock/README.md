@@ -15,7 +15,9 @@ are compiled, never executed; this proves admission behavior, not lock
 algorithms, business roles or cleanup safety.
 
 `required` additionally requires the Plumb artifact's carried policy to select
-`PerishLab/plumb` with both default and all-features coverage. It refuses deleted
+both `PerishLab/plumb` and `PerishLab/runseal` with default and all-features coverage.
+It checks each identity in an independent synthetic source repository and diagnostic
+namespace, recording the repository with its observations. It refuses deleted
 or disabled declarations, either narrowed feature selection and missing Ectropy
 participation, then restores the exact accepted input. The local synthetic Git
 identity exercises the policy matcher; it is not a real GitHub landing canary.
@@ -27,6 +29,10 @@ older products that never promised the capability. Source delivery does not
 establish scene distribution, successful formal execution or promotion.
 Seatrial #45 owns this source result; Plumb #528 retains those execution,
 activation and actual landing obligations under the global .github #152 plan.
+Seatrial #49 extends the source assertions to Runseal; Plumb #534 retains its
+distributed scene, formal combination, activation and landing obligations. A
+Plumb artifact selecting only the original Plumb scope cannot pass this extended
+required scene. Existing historical passes retain their exact scene identity.
 
 The parent Plumb bundle retains the canonical writer case ID and adds lock/joint and
 lock/required. Plumb follows its non-stable channel, Ectropy its current stable
