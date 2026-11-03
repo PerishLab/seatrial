@@ -1,5 +1,5 @@
 use super::manifest::Scene;
-use super::plan::{Setup, Suite};
+use super::plan::Suite;
 use seatrial_lib::binary;
 use seatrial_lib::docker::Lane;
 use seatrial_lib::file;
@@ -12,7 +12,7 @@ pub struct Group {
     pub digest: String,
 }
 
-pub async fn prepare(
+pub fn snapshot(
     suite: &Suite,
     lane: &Lane,
     inputs: &[(String, String)],
@@ -22,11 +22,10 @@ pub async fn prepare(
     std::fs::create_dir(&work).map_err(|error| error.to_string())?;
     let directory = work.join("scene");
     let digest = file::snapshot(&suite.source, &directory)?;
-    let setup = directory.join("suite.toml");
-    if setup.is_file() {
-        let text = std::fs::read_to_string(setup).map_err(|error| error.to_string())?;
-        let copied: Setup = toml::from_str(&text).map_err(|error| error.to_string())?;
-        if copied != suite.setup {
+    if let Some(control) = &suite.control {
+        let copied =
+            std::fs::read(directory.join(&control.path)).map_err(|error| error.to_string())?;
+        if copied != control.bytes {
             return Err("suite changed during preparation".into());
         }
     }
@@ -44,6 +43,10 @@ pub async fn prepare(
         digest,
     };
     println!("suite   {} sha256:{}", suite.source.display(), group.digest);
+    Ok(group)
+}
+
+pub async fn prepare(group: &Group, suite: &Suite, lane: &Lane) -> Result<(), String> {
     if !suite.setup.prepare.is_empty() {
         let spec = binary::Spec {
             command: suite.setup.prepare.clone(),
@@ -57,7 +60,7 @@ pub async fn prepare(
             return Err("suite source changed while its prepare command ran".into());
         }
     }
-    Ok(group)
+    Ok(())
 }
 
 pub async fn case(group: &Group, scene: &Scene, lane: &Lane) -> Result<binary::Spec, String> {
@@ -84,3 +87,6 @@ pub async fn case(group: &Group, scene: &Scene, lane: &Lane) -> Result<binary::S
         group: true,
     })
 }
+
+#[cfg(test)]
+mod tests;

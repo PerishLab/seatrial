@@ -53,7 +53,10 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
 - `crates/lib` — scene-independent process, artifact, file and Docker
   capabilities. Product-specific setup and assertions never belong here.
 - `scenes` — TOML entry points and adjacent black-box scene programs. A portable
-  root's `bundle.toml` lists its case names; other TOML files are assets. Depot
+  root's `bundle.toml` lists legacy paths or explicit case/group mappings;
+  other TOML files are assets. Format2 admits generation + host/v1 only and
+  retains complete Scene binding in run/v1. Explicit setup controls belong
+  inside their declared material root; no parent lookup or basename alias applies. Depot
   metadata must remain outside the execution root so asset names are preserved.
   `scenes/dynet/dns.rs` owns the coupled control trial's wire fixture, built as
   `seatrial-dynet`; its setup and assertions live in the adjacent shell scene.

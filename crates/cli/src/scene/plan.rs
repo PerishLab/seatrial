@@ -1,29 +1,20 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
-
 use super::manifest::{self, Scene};
+
+mod mapped;
+mod setup;
+
+pub use setup::Setup;
 
 #[cfg(test)]
 mod tests;
 
-#[derive(Default, Deserialize, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct Setup {
-    #[serde(default)]
-    pub default: bool,
-    #[serde(default)]
-    pub products: Vec<String>,
-    #[serde(default)]
-    pub prepare: Vec<String>,
-    #[serde(default = "budget")]
-    pub timeout: u64,
-}
-
 pub struct Suite {
     pub source: PathBuf,
     pub setup: Setup,
+    pub control: Option<setup::Control>,
     pub scenes: Vec<Scene>,
 }
 
@@ -32,7 +23,8 @@ pub fn select(root: &Path, names: &[String]) -> Result<Vec<Suite>, String> {
     let indexed = super::bundle::read(&root)?;
     let explicit = indexed.is_some();
     let scenes = match indexed {
-        Some(scenes) => scenes,
+        Some(super::bundle::Index::Mapped(groups)) => return mapped::select(groups, names),
+        Some(super::bundle::Index::Legacy(scenes)) => scenes,
         None => {
             let mut scenes = Vec::new();
             discover(&root, &root, &mut scenes)?;
@@ -62,7 +54,9 @@ pub fn select(root: &Path, names: &[String]) -> Result<Vec<Suite>, String> {
     let mut suites: Vec<Suite> = Vec::new();
     for scene in scenes {
         let source = source(&root, &scene.path)?;
-        let setup = setup(&source)?;
+        let path = source.join("suite.toml");
+        let relative = path.exists().then(|| Path::new("suite.toml"));
+        let (setup, control) = setup::read(&source, relative)?;
         let take = match names.is_empty() {
             true => (explicit || setup.default) && scene.manifest.default,
             false => selected.contains(&scene.name),
@@ -75,6 +69,7 @@ pub fn select(root: &Path, names: &[String]) -> Result<Vec<Suite>, String> {
             None => suites.push(Suite {
                 source,
                 setup,
+                control,
                 scenes: vec![scene],
             }),
         }
@@ -128,26 +123,4 @@ fn source(root: &Path, path: &Path) -> Result<PathBuf, String> {
         current = next;
     }
     Ok(parent.into())
-}
-
-fn setup(source: &Path) -> Result<Setup, String> {
-    let path = source.join("suite.toml");
-    if !path.exists() {
-        return Ok(Setup {
-            timeout: budget(),
-            ..Setup::default()
-        });
-    }
-    let text = std::fs::read_to_string(path).map_err(|error| error.to_string())?;
-    let setup: Setup = toml::from_str(&text).map_err(|error| error.to_string())?;
-    manifest::products(&setup.products)?;
-    let duration = std::time::Duration::from_secs(setup.timeout);
-    if duration.is_zero() || std::time::Instant::now().checked_add(duration).is_none() {
-        return Err("invalid prepare timeout".into());
-    }
-    Ok(setup)
-}
-
-fn budget() -> u64 {
-    300
 }

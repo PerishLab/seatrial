@@ -46,3 +46,7 @@ the generic runner separately records scene identity, pass/failure, unpublished
 ports and full labelled cleanup. A passed scene without confirmed cleanup is
 not sufficient evidence. These runs are manual observations until the relevant
 Windtun control-plane enforcement is actually verified.
+
+The shared format2 Scene introduced by Seatrial #59 names this case
+`radicula-redis`. The local format1 root above retains `redis`. Use the exact
+ID of the selected catalogue; no basename or qualified-path alias is added.

@@ -42,6 +42,10 @@ pub fn load(root: &Path, name: &str) -> Result<Scene, String> {
     if !path.starts_with(root) {
         return Err("scene escapes its root".into());
     }
+    read(name, path)
+}
+
+pub(super) fn read(name: &str, path: PathBuf) -> Result<Scene, String> {
     let bytes = std::fs::read(&path).map_err(|error| error.to_string())?;
     let text = std::str::from_utf8(&bytes).map_err(|error| error.to_string())?;
     let manifest: Manifest = toml::from_str(text).map_err(|error| error.to_string())?;
