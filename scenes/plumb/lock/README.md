@@ -85,3 +85,8 @@ A local scene override is development evidence. Formal qualification also needs
 its distributed scene generation and formally admitted runner. Keep failures
 for older tool combinations as failures with cleanup evidence; never relabel
 them as successful execution of these cases.
+
+The shared format2 Scene introduced by Seatrial #59 selects these diagnostics
+with exact IDs `lock-joint` and `lock-required`. The local format1 development
+command above retains `lock/joint` and `lock/required`. They are different
+catalogues; the runner supplies no implicit aliases or assertion changes.

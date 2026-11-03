@@ -91,22 +91,33 @@ async fn prepare(
     let start = Instant::now();
     let result = async {
         let mut batches = Vec::new();
+        let mut digests = BTreeSet::new();
         for (index, suite) in suites.into_iter().enumerate() {
-            let group = stage::prepare(&suite, lane, &env, index).await?;
+            let group = stage::snapshot(&suite, lane, &env, index)?;
+            if !digests.insert(group.digest.clone()) {
+                return Err(
+                    "distinct groups have the same snapshot digest; run/v1 cannot represent them"
+                        .into(),
+                );
+            }
+            batches.push(Batch {
+                group: Arc::new(group),
+                suite: Arc::new(suite),
+                images: Vec::new(),
+            });
+        }
+        for batch in &mut batches {
+            stage::prepare(&batch.group, &batch.suite, lane).await?;
             record.groups.push(crate::record::Group {
-                digest: group.digest.clone(),
-                cases: suite
+                digest: batch.group.digest.clone(),
+                cases: batch
+                    .suite
                     .scenes
                     .iter()
                     .map(|scene| scene.name.clone())
                     .collect(),
             });
-            let images = images(pins, &suite, lane, record).await?;
-            batches.push(Batch {
-                group: Arc::new(group),
-                suite: Arc::new(suite),
-                images,
-            });
+            batch.images = images(pins, &batch.suite, lane, record).await?;
         }
         Ok::<_, String>(batches)
     }

@@ -85,6 +85,69 @@ case remains explicitly selectable. Group preparation still uses the nearest
 For example, `--scenes scenes/plumb` selects the portable writer root,
 while explicitly selecting the repository root keeps the 48 Keel instances.
 
+## Explicit case mappings
+
+Bundle format2 separates stable IDs from manifest locations and material roots:
+
+```toml
+format = 2
+[[groups]]
+id = "concord"
+root = "concord"
+setup = []
+binding = "generation"
+profile = "host/v1"
+[[cases]]
+id = "context"
+manifest = "concord/context.toml"
+group = "concord"
+```
+
+The exact top-level fields are `format`, `groups` and `cases`. Groups have
+`id`, `root`, `setup`, `binding` and `profile`; cases have `id`, `manifest` and
+`group`. Each namespace has unique IDs of 1..64 lowercase ASCII letters,
+digits, hyphens or underscores, with at most128 groups and cases. Manifest
+paths are unique. Lookup and reports use only the declared case ID; filenames,
+basenames and former qualified paths are not aliases.
+
+Paths are canonical Scene-relative POSIX paths, at most255 bytes and16
+components, using ASCII letters/digits/`._-`. Empty, dot, dot-dot, absolute,
+drive, URI, symlink and special-file paths refuse. A generation group may use
+`.` as its entire root. Group roots must be disjoint; declare one group for
+an identical root. Each manifest and setup control must lie inside its root.
+`setup` is mandatory: `[]` means no setup control lookup, while `["path"]`
+selects that one Scene-relative control file. An ordinary asset named
+`suite.toml` is not parsed implicitly. All indexed manifests and explicit
+controls are validated, including unselected groups.
+
+The runner snapshots all selected groups before any prepare command. A
+changed setup control or repeated actual group digest refuses execution;
+run/v1 requires groups with unique digests and exact case coverage. Cases
+still execute concurrently after preparation, with their own stores and the
+normal lane cleanup. Format1 and unindexed development roots retain their
+qualified names, unique basename lookup and nearest-suite selection.
+
+Only `generation` with `host/v1` is supported. Hosts keep their existing
+execution capabilities; material roots do not promise confinement. Reports
+remain `seatrial.run/v1`, and qualification still binds the complete
+authenticated Scene generation, runner and current consumer requirements.
+Moving files or changing an unselected asset still needs a fresh qualification.
+Selected-material binding and new profiles refuse without host fallback.
+
+For the audited shared Scene migration, `context`, `release` and `writer`
+remain stable IDs. Global diagnostic IDs change explicitly:
+
+| Previous shared-root name | Format2 ID | Existing local development selection |
+| --- | --- | --- |
+| `lock/joint` | `lock-joint` | `--scenes scenes/plumb --case lock/joint` |
+| `lock/required` | `lock-required` | `--scenes scenes/plumb --case lock/required` |
+| `radicula/redis` | `radicula-redis` | `--scenes scenes/radicula --case redis` |
+
+The local bundles remain format1. Publish a shared format2 Scene only after
+installing the containing formal runner and auditing its current declarations
+and direct callers. Historical pass/v1 credentials keep their whole-generation
+meaning; no target product binary needs republishing merely to move Scene files.
+
 The release declaration ships only the generic Linux `seatrial` executable.
 The auxiliary product drivers remain development inputs during migration.
 Runner distribution and Depot consumption are tracked in

@@ -28,6 +28,17 @@ pub struct Group {
     pub cases: Vec<String>,
 }
 
+impl Group {
+    fn valid(&self) -> bool {
+        let digest = self.digest.len() == 64
+            && self
+                .digest
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
+        digest && !self.cases.is_empty()
+    }
+}
+
 #[derive(Serialize)]
 pub struct Case {
     pub name: String,
@@ -141,6 +152,9 @@ impl Record {
         let selected: std::collections::BTreeSet<_> = self.selected.iter().collect();
         let reported: std::collections::BTreeSet<_> =
             self.cases.iter().map(|case| &case.name).collect();
+        if !self.groups(&selected) {
+            return false;
+        }
         matches!(
             (
                 selected.len() == self.selected.len(),
@@ -149,6 +163,22 @@ impl Record {
             ),
             (true, true, true)
         )
+    }
+
+    fn groups(&self, selected: &std::collections::BTreeSet<&String>) -> bool {
+        let mut digests = std::collections::BTreeSet::new();
+        let mut covered = std::collections::BTreeSet::new();
+        for group in &self.groups {
+            if !group.valid() || !digests.insert(&group.digest) {
+                return false;
+            }
+            for case in &group.cases {
+                if !covered.insert(case) {
+                    return false;
+                }
+            }
+        }
+        &covered == selected
     }
 
     pub fn write(&mut self) -> Result<(), String> {
@@ -165,75 +195,4 @@ impl Record {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn completion() {
-        let mut record = Record::open(None).unwrap();
-        record.settle(&Ok(true), false);
-        assert!(!record.ok);
-        record.selected.push("writer".into());
-        record.cases.push(Case {
-            name: "writer".into(),
-            passed: true,
-            seconds: 0.1,
-            error: None,
-        });
-        record.settle(&Ok(true), false);
-        assert!(!record.ok);
-        record.cleanup = Some(true);
-        record.settle(&Ok(true), false);
-        assert!(record.ok);
-        record.settle(&Ok(true), true);
-        assert!(!record.ok);
-        assert_eq!(record.state, "cancelled");
-        record.cleanup = Some(false);
-        record.settle(&Err("cleanup refused".into()), false);
-        assert!(!record.ok);
-        record.cleanup = Some(true);
-        record.cases[0].name = "other".into();
-        record.settle(&Ok(true), false);
-        assert!(!record.ok);
-    }
-
-    #[test]
-    fn duplicates() {
-        let mut record = Record::open(None).unwrap();
-        record.cleanup = Some(true);
-        record.selected = vec!["writer".into(), "writer".into()];
-        for _ in 0..2 {
-            record.cases.push(Case {
-                name: "writer".into(),
-                passed: true,
-                seconds: 0.1,
-                error: None,
-            });
-        }
-        record.settle(&Ok(true), false);
-        assert!(!record.ok);
-        record.selected[1] = "reader".into();
-        record.settle(&Ok(true), false);
-        assert!(!record.ok);
-        record.cases[1].name = "reader".into();
-        record.cases[1].passed = false;
-        record.settle(&Ok(false), false);
-        assert!(!record.ok);
-        assert_eq!(record.state, "failed");
-    }
-
-    #[test]
-    fn output() {
-        let root = tempfile::tempdir().unwrap();
-        let path = root.path().join("result.json");
-        let mut record = Record::open(Some(&path)).unwrap();
-        record.settle(&Err("preparation failed".into()), false);
-        record.write().unwrap();
-        let bytes = std::fs::read(&path).unwrap();
-        let value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-        assert_eq!(value["ok"], false);
-        assert_eq!(value["cleanup"], serde_json::Value::Null);
-        assert!(Record::open(Some(&path)).is_err());
-        assert_eq!(std::fs::read(path).unwrap(), bytes);
-    }
-}
+mod tests;
