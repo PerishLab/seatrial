@@ -113,10 +113,11 @@ The runner snapshots all selected groups before any prepare command. A
 changed setup control or repeated actual group digest refuses execution;
 run/v1 requires groups with unique digests and exact case coverage. Cases
 still execute concurrently after preparation, with their own stores and the
-normal lane cleanup. The runner still accepts format1 and unindexed external
-roots during the coordinated migration in [#61](https://github.com/PerishLab/seatrial/issues/61). Repository development roots no longer use those
-legacy selection and setup rules; beta and rc publication must precede their
-removal from the runner.
+normal lane cleanup. Only explicit format2 catalogues are supported. Missing
+indexes, legacy formats, inferred setup and basename/path aliases are refused
+before lane creation or preparation. Case manifests alone own default selection;
+setup controls accept products, prepare and timeout, with no suite-level default.
+All formal and local entry points must migrate before using this runner.
 
 Only `generation` with `host/v1` is supported. Hosts keep their existing
 execution capabilities; material roots do not promise confinement. Reports

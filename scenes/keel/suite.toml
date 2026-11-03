@@ -1,4 +1,3 @@
-default = true
 products = ["keel"]
 timeout = 300
 prepare = ["sh", "-eu", "prepare.sh"]

@@ -1,3 +1,2 @@
-default = false
 prepare = ["python3", "prepare.py"]
 timeout = 300
