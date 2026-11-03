@@ -1,2 +1,13 @@
-format = 1
-cases = ["tencent"]
+format = 2
+
+[[groups]]
+id = "hardrig"
+root = "."
+setup = ["suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "tencent"
+manifest = "tencent.toml"
+group = "hardrig"

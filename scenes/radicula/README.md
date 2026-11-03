@@ -5,7 +5,7 @@ exception (PerishLab/.github#146). Its separate Rust program links only the
 public `radicula-lock` API. The generic Seatrial runner has no product dependency;
 Radicula gains no executable, private export or testing mode.
 
-Run the formal Seatrial executable with `--scenes scenes/radicula --case redis`.
+Run the formal Seatrial executable with `--scenes scenes/radicula --case radicula-redis`.
 The host needs Docker, Python 3.12+, Cargo/Rust and curl. The preparation step
 materializes `Cargo.toml.in` as a separate build project and builds the scene program in the lane work directory, following the public
 Perish registry with requirement `0`, recording the complete Cargo resolution,
@@ -47,6 +47,6 @@ ports and full labelled cleanup. A passed scene without confirmed cleanup is
 not sufficient evidence. These runs are manual observations until the relevant
 Windtun control-plane enforcement is actually verified.
 
-The shared format2 Scene introduced by Seatrial #59 names this case
-`radicula-redis`. The local format1 root above retains `redis`. Use the exact
-ID of the selected catalogue; no basename or qualified-path alias is added.
+The shared format2 Scene and the local development catalogue both use the exact
+ID `radicula-redis`. The former `redis` selection is not an alias. The scene
+program and assertions are unchanged by the mapping migration.

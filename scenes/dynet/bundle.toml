@@ -1,0 +1,13 @@
+format = 2
+
+[[groups]]
+id = "dynet"
+root = "."
+setup = ["suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "dynet-control"
+manifest = "control.toml"
+group = "dynet"

@@ -1,2 +1,18 @@
-format = 1
-cases = ["context", "release"]
+format = 2
+
+[[groups]]
+id = "concord"
+root = "."
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "context"
+manifest = "context.toml"
+group = "concord"
+
+[[cases]]
+id = "release"
+manifest = "release.toml"
+group = "concord"
