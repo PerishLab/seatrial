@@ -64,10 +64,15 @@ async fn identical() {
         std::fs::write(path.join("case.toml"), "timeout=1\ncommand=['true']\n").unwrap();
         std::fs::write(
             path.join("suite.toml"),
-            format!("default=true\nprepare=['touch','{}']\n", marker.display()),
+            format!("prepare=['touch','{}']\n", marker.display()),
         )
         .unwrap();
     }
+    let mut index = String::from("format=2\n");
+    for name in ["first", "second"] {
+        index.push_str(&format!("[[groups]]\nid='{name}'\nroot='{name}'\nsetup=['{name}/suite.toml']\nbinding='generation'\nprofile='host/v1'\n[[cases]]\nid='{name}'\nmanifest='{name}/case.toml'\ngroup='{name}'\n"));
+    }
+    std::fs::write(root.path().join("bundle.toml"), index).unwrap();
     let suites = plan::select(root.path(), &[]).unwrap();
     let (_sender, stop) = tokio::sync::watch::channel(false);
     let lane = Arc::new(Lane {

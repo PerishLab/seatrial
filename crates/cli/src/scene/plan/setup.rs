@@ -6,8 +6,6 @@ use serde::Deserialize;
 #[serde(deny_unknown_fields)]
 pub struct Setup {
     #[serde(default)]
-    pub default: bool,
-    #[serde(default)]
     pub products: Vec<String>,
     #[serde(default)]
     pub prepare: Vec<String>,
@@ -36,7 +34,7 @@ pub(super) fn read(
     let bytes = std::fs::read(source.join(relative)).map_err(|error| error.to_string())?;
     let text = std::str::from_utf8(&bytes).map_err(|error| error.to_string())?;
     let setup: Setup = toml::from_str(text).map_err(|error| error.to_string())?;
-    super::manifest::products(&setup.products)?;
+    crate::scene::manifest::products(&setup.products)?;
     let duration = std::time::Duration::from_secs(setup.timeout);
     if duration.is_zero() || std::time::Instant::now().checked_add(duration).is_none() {
         return Err("invalid prepare timeout".into());

@@ -173,7 +173,7 @@ mod tests {
         let mut record = record::Record::open(None).unwrap();
         let (_, stop) = tokio::sync::watch::channel(false);
         let error = run(&input, stop, &mut record).await.unwrap_err();
-        assert_eq!(error, "no scenes selected");
+        assert_eq!(error, "Scene root requires an explicit format2 bundle.toml");
         let stages: Vec<_> = record
             .stages
             .iter()

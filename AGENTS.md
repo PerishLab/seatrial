@@ -54,7 +54,9 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   capabilities. Product-specific setup and assertions never belong here.
 - `scenes` — TOML entry points and adjacent black-box scene programs. A portable
   root's `bundle.toml` declares explicit case/group mappings;
-  other TOML files are assets. Format2 admits generation + host/v1 only and
+  other TOML files are assets. Missing or legacy indexes refuse before lane/prepare.
+  Case defaults own selection; setup controls carry only products/prepare/timeout.
+  Format2 admits generation + host/v1 only and
   retains complete Scene binding in run/v1. Explicit setup controls belong
   inside their declared material root; no parent lookup or basename alias applies. Depot
   metadata must remain outside the execution root so asset names are preserved.

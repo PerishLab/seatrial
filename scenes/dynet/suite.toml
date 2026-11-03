@@ -1,4 +1,3 @@
-default = false
 products = ["dynet", "secrets", "plumb"]
 timeout = 600
 prepare = ["sh", "-eu", "prepare.sh"]

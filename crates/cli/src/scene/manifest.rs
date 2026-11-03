@@ -1,4 +1,4 @@
-use std::path::{Component, Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::Deserialize;
 
@@ -23,26 +23,6 @@ pub struct Scene {
     pub path: PathBuf,
     pub bytes: Vec<u8>,
     pub manifest: Manifest,
-}
-
-pub fn load(root: &Path, name: &str) -> Result<Scene, String> {
-    if name.is_empty()
-        || name.contains('\\')
-        || !Path::new(name)
-            .components()
-            .all(|part| matches!(part, Component::Normal(_)))
-    {
-        return Err(format!("invalid scene name {name}"));
-    }
-    let root = root.canonicalize().map_err(|error| error.to_string())?;
-    let path = root.join(format!("{name}.toml"));
-    let path = path
-        .canonicalize()
-        .map_err(|error| format!("{}: {error}", path.display()))?;
-    if !path.starts_with(root) {
-        return Err("scene escapes its root".into());
-    }
-    read(name, path)
 }
 
 pub(super) fn read(name: &str, path: PathBuf) -> Result<Scene, String> {
