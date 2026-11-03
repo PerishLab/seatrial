@@ -1,0 +1,148 @@
+format = 2
+
+[[groups]]
+id = "keel"
+root = "keel"
+setup = ["keel/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "again"
+manifest = "keel/core/again.toml"
+group = "keel"
+
+[[cases]]
+id = "blank"
+manifest = "keel/core/blank.toml"
+group = "keel"
+
+[[cases]]
+id = "closed"
+manifest = "keel/core/closed.toml"
+group = "keel"
+
+[[cases]]
+id = "health"
+manifest = "keel/core/health.toml"
+group = "keel"
+
+[[cases]]
+id = "restart"
+manifest = "keel/core/restart.toml"
+group = "keel"
+
+[[cases]]
+id = "sudo"
+manifest = "keel/core/sudo.toml"
+group = "keel"
+
+[[cases]]
+id = "unique"
+manifest = "keel/core/unique.toml"
+group = "keel"
+
+[[cases]]
+id = "batch"
+manifest = "keel/data/batch.toml"
+group = "keel"
+
+[[cases]]
+id = "cascade"
+manifest = "keel/data/cascade.toml"
+group = "keel"
+
+[[cases]]
+id = "portable"
+manifest = "keel/data/portable.toml"
+group = "keel"
+
+[[cases]]
+id = "pulse"
+manifest = "keel/data/pulse.toml"
+group = "keel"
+
+[[cases]]
+id = "scoped"
+manifest = "keel/data/scoped.toml"
+group = "keel"
+
+[[cases]]
+id = "spare"
+manifest = "keel/data/spare.toml"
+group = "keel"
+
+[[cases]]
+id = "foreign"
+manifest = "keel/life/foreign.toml"
+group = "keel"
+
+[[cases]]
+id = "ghost"
+manifest = "keel/life/ghost.toml"
+group = "keel"
+
+[[cases]]
+id = "lease"
+manifest = "keel/life/lease.toml"
+group = "keel"
+
+[[cases]]
+id = "linger"
+manifest = "keel/life/linger.toml"
+group = "keel"
+
+[[cases]]
+id = "outlive"
+manifest = "keel/life/outlive.toml"
+group = "keel"
+
+[[cases]]
+id = "revived"
+manifest = "keel/life/revived.toml"
+group = "keel"
+
+[[cases]]
+id = "vetoed"
+manifest = "keel/life/vetoed.toml"
+group = "keel"
+
+[[cases]]
+id = "adopt"
+manifest = "keel/race/adopt.toml"
+group = "keel"
+
+[[cases]]
+id = "cling"
+manifest = "keel/race/cling.toml"
+group = "keel"
+
+[[cases]]
+id = "dangle"
+manifest = "keel/race/dangle.toml"
+group = "keel"
+
+[[cases]]
+id = "kin"
+manifest = "keel/race/kin.toml"
+group = "keel"
+
+[[cases]]
+id = "lapse"
+manifest = "keel/race/lapse.toml"
+group = "keel"
+
+[[cases]]
+id = "orphan"
+manifest = "keel/race/orphan.toml"
+group = "keel"
+
+[[cases]]
+id = "rival"
+manifest = "keel/race/rival.toml"
+group = "keel"
+
+[[cases]]
+id = "outage"
+manifest = "keel/store/outage.toml"
+group = "keel"

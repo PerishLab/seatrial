@@ -25,13 +25,17 @@ fn catalog() {
 }
 
 #[test]
-fn aliases() {
-    let cases = ["health".into(), "keel/core/health".into()];
-    let suites = select(Path::new("../../scenes"), &cases).unwrap();
+fn exact() {
+    let root = Path::new("../../scenes");
+    let suites = select(root, &["health".into()]).unwrap();
     assert_eq!(suites[0].scenes.len(), 1);
-    assert_eq!(suites[0].scenes[0].name, "keel/core/health");
-    let writer = select(Path::new("../../scenes"), &["writer".into()]).unwrap();
-    assert_eq!(writer[0].scenes[0].name, "plumb/writer");
+    assert_eq!(suites[0].scenes[0].name, "health");
+    assert!(select(root, &["keel/core/health".into()]).is_err());
+    assert!(select(root, &["writer".into()]).is_err());
+    let writer = select(Path::new("../../scenes/plumb"), &["writer".into()]).unwrap();
+    assert_eq!(writer[0].scenes[0].name, "writer");
+    assert!(writer[0].source.ends_with("plumb/writer"));
+    assert!(writer[0].control.is_none());
 }
 
 #[test]
@@ -146,7 +150,7 @@ fn writer() {
     assert_eq!(suites[0].scenes[0].manifest.products, ["plumb"]);
     let optional = select(
         Path::new("../../scenes/plumb"),
-        &["lock/joint".into(), "lock/required".into()],
+        &["lock-joint".into(), "lock-required".into()],
     )
     .unwrap();
     assert_eq!(optional.len(), 1);
@@ -192,4 +196,57 @@ fn links() {
     )
     .unwrap();
     assert!(select(root.path(), &[]).is_err());
+}
+
+#[test]
+fn catalogues() {
+    let whole = select(Path::new("../../scenes"), &[]).unwrap();
+    let keel = select(Path::new("../../scenes/keel"), &[]).unwrap();
+    assert_eq!(whole[0].source, keel[0].source);
+    assert!(whole[0].setup == keel[0].setup);
+    let names = |suite: &super::Suite| {
+        suite
+            .scenes
+            .iter()
+            .map(|scene| scene.name.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(names(&whole[0]), names(&keel[0]));
+    assert_eq!(
+        whole[0].control.as_ref().unwrap().bytes,
+        keel[0].control.as_ref().unwrap().bytes
+    );
+    let native = select(Path::new("../../scenes/keel/native"), &[]).unwrap();
+    assert_eq!(names(&native[0]), ["health-lite", "again-lite"]);
+    assert!(!native[0].setup.default);
+    let concord = select(Path::new("../../scenes/concord"), &[]).unwrap();
+    assert_eq!(names(&concord[0]), ["context", "release"]);
+    assert!(concord[0].control.is_none());
+}
+
+#[test]
+fn optional() {
+    for (root, id, old) in [
+        ("../../scenes/plumb/lock", "lock-joint", "joint"),
+        ("../../scenes/radicula", "radicula-redis", "redis"),
+        ("../../scenes/dynet", "dynet-control", "control"),
+    ] {
+        let root = Path::new(root);
+        assert!(select(root, &[]).is_err());
+        assert!(select(root, &[old.into()]).is_err());
+        let suites = select(root, &[id.into()]).unwrap();
+        assert_eq!(suites.len(), 1);
+        assert_eq!(suites[0].scenes.len(), 1);
+        assert_eq!(suites[0].scenes[0].name, id);
+        assert!(!suites[0].scenes[0].manifest.default);
+        assert_eq!(
+            suites[0].control.as_ref().unwrap().path,
+            Path::new("suite.toml")
+        );
+    }
+    let root = Path::new("../../scenes/hardrig");
+    assert!(select(root, &[]).is_err());
+    let suites = select(root, &["tencent".into()]).unwrap();
+    assert!(!suites[0].scenes[0].manifest.default);
+    assert_eq!(suites[0].setup.products, ["hardrig", "runseal", "plumb"]);
 }

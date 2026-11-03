@@ -38,13 +38,13 @@ execution, artifact verification, file snapshots and lane management. Keel's
 black-box driver lives under `scenes/keel/src`, compiled as the separate
 `seatrial-keel` auxiliary executable. Product-specific code stays in scenes.
 
-`scenes/plumb/writer.toml` selects the writer scene. `writer` remains
-its short alias. A scene command runs on the host from a fresh snapshot of
-the manifest's directory; adjacent scripts may drive Docker and other tools
-directly. `--scenes <directory>` selects a local scene root. Several scenes can be
-selected in one invocation. With `--scenes scenes` and no `--case`, the legacy
-suite selects the same 28 Keel cases and 48 storage instances. Short
-names resolve only when unique; otherwise use the qualified scene path.
+`scenes/plumb/writer/writer.toml` declares the exact case ID `writer`.
+A scene command runs on the host from a fresh snapshot of its declared material
+root; adjacent scripts may drive Docker and other tools directly. `--scenes`
+selects a local catalogue root, and `--case` selects exact declared IDs.
+With `--scenes scenes` and no `--case`, the explicit catalogue selects the same
+28 Keel cases and 48 storage instances. Optional suites use their own catalogue
+roots; qualified paths and basenames are not aliases in these mappings.
 
 ```toml
 products = ["plumb"]
@@ -68,22 +68,11 @@ Snapshot identity includes adjacent file names, contents and permissions;
 symbolic links and special files are refused. Scene code owns its business
 setup and assertions. The writer's original business script is unchanged.
 
-A portable scene root can declare its entry points in `bundle.toml`:
-
-```toml
-format = 1
-cases = ["writer"]
-```
-
-Case names are relative paths without the final `.toml`. Only the listed
-manifests are parsed; adjacent TOML files can remain ordinary scene assets.
-Unknown formats or fields, empty or repeated entries, missing cases and escaping
-paths refuse before execution. The bundle's listed cases form its catalog;
-without `--case`, their manifest `default` values select the run. An excluded
-case remains explicitly selectable. Group preparation still uses the nearest
-`suite.toml`. The legacy repository-wide catalog keeps its existing defaults.
-For example, `--scenes scenes/plumb` selects the portable writer root,
-while explicitly selecting the repository root keeps the 48 Keel instances.
+Every repository development root declares its entry points and material groups
+in `bundle.toml` using format2. Only indexed manifests are cases; adjacent TOML
+files remain ordinary assets. Without `--case`, manifest `default` values select
+the run. Excluded cases remain explicitly selectable. A group's explicit
+`setup` identifies its control file; directory ancestry supplies no setup.
 
 ## Explicit case mappings
 
@@ -124,8 +113,10 @@ The runner snapshots all selected groups before any prepare command. A
 changed setup control or repeated actual group digest refuses execution;
 run/v1 requires groups with unique digests and exact case coverage. Cases
 still execute concurrently after preparation, with their own stores and the
-normal lane cleanup. Format1 and unindexed development roots retain their
-qualified names, unique basename lookup and nearest-suite selection.
+normal lane cleanup. The runner still accepts format1 and unindexed external
+roots during the coordinated migration in [#61](https://github.com/PerishLab/seatrial/issues/61). Repository development roots no longer use those
+legacy selection and setup rules; beta and rc publication must precede their
+removal from the runner.
 
 Only `generation` with `host/v1` is supported. Hosts keep their existing
 execution capabilities; material roots do not promise confinement. Reports
@@ -137,13 +128,13 @@ Selected-material binding and new profiles refuse without host fallback.
 For the audited shared Scene migration, `context`, `release` and `writer`
 remain stable IDs. Global diagnostic IDs change explicitly:
 
-| Previous shared-root name | Format2 ID | Existing local development selection |
+| Previous shared-root name | Format2 ID | Local development selection |
 | --- | --- | --- |
-| `lock/joint` | `lock-joint` | `--scenes scenes/plumb --case lock/joint` |
-| `lock/required` | `lock-required` | `--scenes scenes/plumb --case lock/required` |
-| `radicula/redis` | `radicula-redis` | `--scenes scenes/radicula --case redis` |
+| `lock/joint` | `lock-joint` | `--scenes scenes/plumb --case lock-joint` |
+| `lock/required` | `lock-required` | `--scenes scenes/plumb --case lock-required` |
+| `radicula/redis` | `radicula-redis` | `--scenes scenes/radicula --case radicula-redis` |
 
-The local bundles remain format1. Publish a shared format2 Scene only after
+The local bundles use format2. Publish a shared format2 Scene only after
 installing the containing formal runner and auditing its current declarations
 and direct callers. Historical pass/v1 credentials keep their whole-generation
 meaning; no target product binary needs republishing merely to move Scene files.
@@ -153,9 +144,10 @@ The auxiliary product drivers remain development inputs during migration.
 Runner distribution and Depot consumption are tracked in
 [the independent writer pilot](https://github.com/PerishLab/seatrial/issues/32).
 
-A nearest `suite.toml` groups cases and optionally declares one `prepare`
-command, its command timeout, shared `products` and `default = true`. The runner
-prepares every selected group before starting its cases concurrently, using
+An explicitly selected setup control optionally declares one `prepare`
+command, its command timeout and shared `products`. In format2, case manifests
+own default selection; a setup control's `default` field does not select cases.
+The runner prepares every selected group before starting its cases concurrently, using
 one lane and one verified product resolution per invocation. There is no
 nested inheritance or business-step language. Keel's suite shares one Postgres
 service while each case owns its database and SQLite volume. Each case TOML
@@ -314,7 +306,7 @@ PerishLab/.github#136).
 
 ## Encrypted Dynet control
 
-`cargo run -- run --scenes scenes --case dynet/control` explicitly selects the coupled Dynet and
+`cargo run -- run --scenes scenes/dynet --case dynet-control` explicitly selects the coupled Dynet and
 Secrets trial. It follows their configured channels and the existing Plumb
 runtime image, records artifact/image identities and builds its own small Rust
 DNS fixture. The host needs `jq`, `rg`, Docker and `/dev/net/tun`; the client
@@ -361,6 +353,6 @@ The two pilot cases keep the legacy assertions: health bootstraps custody,
 starts the API, reads custody, and independently requires anonymous `/health`
 HTTP 200 after readiness; again requires the first custody file, refuses a
 second bootstrap without a second custody file, and requires status `sealed`.
-Each gets a fresh volume. The legacy group and its PostgreSQL instances remain;
-the portable group is excluded from the legacy root defaults and selected through
+Each gets a fresh volume. The Keel group and its PostgreSQL instances remain;
+the portable group is excluded from the aggregate catalogue defaults and selected through
 its own Depot bundle. The stable writer bundle is independent of this pilot.

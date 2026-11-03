@@ -1,2 +1,18 @@
-format = 1
-cases = ["joint", "required"]
+format = 2
+
+[[groups]]
+id = "lock"
+root = "."
+setup = ["suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "lock-joint"
+manifest = "joint.toml"
+group = "lock"
+
+[[cases]]
+id = "lock-required"
+manifest = "required.toml"
+group = "lock"

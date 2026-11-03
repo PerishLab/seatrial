@@ -62,8 +62,8 @@ Santi's separate source opt-in does not supply carried required protection.
 Plumb #545 owns the containing RC/stable positive, installation, actual Santi
 consumer verification and subsequent real Plumb landing obligations.
 
-The parent Plumb bundle retains the canonical writer case ID and adds lock/joint and
-lock/required. Plumb follows its non-stable channel, Ectropy its current stable
+The parent Plumb bundle retains the canonical writer case ID and adds lock-joint and
+lock-required. Plumb follows its non-stable channel, Ectropy its current stable
 channel, and the runtime follows the existing Plumb Images declaration.
 No tool version or first-party image is pinned by a scene.
 
@@ -78,7 +78,7 @@ For an explicit local scene development run, use the public interface:
 
 ```sh
 seatrial run --pins seatrial.toml --scenes scenes/plumb \
-  --case lock/joint --case lock/required --report NEW_FILE.json
+  --case lock-joint --case lock-required --report NEW_FILE.json
 ```
 
 A local scene override is development evidence. Formal qualification also needs
@@ -86,7 +86,7 @@ its distributed scene generation and formally admitted runner. Keep failures
 for older tool combinations as failures with cleanup evidence; never relabel
 them as successful execution of these cases.
 
-The shared format2 Scene introduced by Seatrial #59 selects these diagnostics
-with exact IDs `lock-joint` and `lock-required`. The local format1 development
-command above retains `lock/joint` and `lock/required`. They are different
-catalogues; the runner supplies no implicit aliases or assertion changes.
+The shared format2 Scene and the local development catalogues use the exact IDs
+`lock-joint` and `lock-required`. The former `lock/joint`, `lock/required`,
+`joint` and `required` selections are not aliases in these catalogues.
+Scene programs and assertions are unchanged by the mapping migration.

@@ -1,2 +1,30 @@
-format = 1
-cases = ["writer", "lock/joint", "lock/required"]
+format = 2
+
+[[groups]]
+id = "writer"
+root = "writer"
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[groups]]
+id = "lock"
+root = "lock"
+setup = ["lock/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "writer"
+manifest = "writer/writer.toml"
+group = "writer"
+
+[[cases]]
+id = "lock-joint"
+manifest = "lock/joint.toml"
+group = "lock"
+
+[[cases]]
+id = "lock-required"
+manifest = "lock/required.toml"
+group = "lock"

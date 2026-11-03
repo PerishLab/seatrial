@@ -1,2 +1,18 @@
-format = 1
-cases = ["health-lite", "again-lite"]
+format = 2
+
+[[groups]]
+id = "keel"
+root = "."
+setup = ["suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "health-lite"
+manifest = "health-lite.toml"
+group = "keel"
+
+[[cases]]
+id = "again-lite"
+manifest = "again-lite.toml"
+group = "keel"
