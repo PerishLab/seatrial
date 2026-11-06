@@ -102,6 +102,13 @@ docker exec "$gw_client" /fixture/wire fetch 203.0.113.7:8080
 put "$gw_router" /device/fw4.nft <<'NFT'
 table inet fw4 {
   flowtable ft { hook ingress priority 0; devices = { "eth0", "eth1" }; counter; }
+  chain input {
+    type filter hook input priority 0; policy drop;
+    iifname "lo" counter accept
+    iifname "eth0" counter accept
+    ct state established,related counter accept
+    iifname "dynet9" meta l4proto tcp counter drop comment "seatrial-dynet-input-denied"
+  }
   chain forward {
     type filter hook forward priority 0; policy drop;
     meta l4proto { tcp, udp } flow add @ft
@@ -146,16 +153,56 @@ insert rule inet fw4 forward ip saddr $gw_client_ip oifname "dynet9" counter acc
 insert rule inet fw4 forward iifname "dynet9" ip daddr $gw_client_ip counter accept comment "seatrial-dynet-back"
 NFT
 gexec nft -f /device/admission.nft
-gexec env DYNET_LOCAL=false DYNET_SOURCES="$gw_client_ip/32" /fixture/dynet --instance dynet9 --port 15353 up --claim 0.0.0.0/0
-docker exec -d "$gw_router" sh -eu -c 'umask 077; ulimit -c 0; ulimit -n 512; ulimit -v 524288; echo $$ > /device/runtime.pid; exec env DYNET_LOCAL=false DYNET_SOURCES="$1/32" /fixture/dynet --instance dynet9 --state /device --port 15353 divert --bootstrap /device/bootstrap.json --seconds 0 > /device/runtime.log 2>&1' sh "$gw_client_ip"
+gexec env DYNET_SPAN=198.51.100.0/24 DYNET_LOCAL=false DYNET_SOURCES="$gw_client_ip/32" /fixture/dynet --instance dynet9 --port 15353 up --claim 203.0.113.0/24
+docker exec -d "$gw_router" sh -eu -c 'umask 077; ulimit -c 0; ulimit -n 512; ulimit -v 524288; echo $$ > /device/runtime.pid; exec env DYNET_SPAN=198.51.100.0/24 DYNET_LOCAL=false DYNET_SOURCES="$1/32" /fixture/dynet --instance dynet9 --state /device --port 15353 divert --bootstrap /device/bootstrap.json --seconds 0 > /device/runtime.log 2>&1' sh "$gw_client_ip"
 gw_seat=$(gexec ip -j -4 address show dev dynet9 | jq -er '.[0].addr_info[0].local')
 gw_deadline=$(( $(date +%s) + 10 ))
 until gexec /fixture/wire query "$gw_seat:15353" ready.fixture 203.0.113.7; do
   [ "$(date +%s)" -lt "$gw_deadline" ] || fail 'forwarded DNS did not become ready'
   sleep 1
 done
+docker exec -d "$gw_router" sh -eu -c 'echo $$ > /device/competing.pid; exec /fixture/wire http "$1:53"' sh "$gw_seat"
+gw_hex=$(printf '%s\n' "$gw_seat" | awk -F. '{printf "%02X%02X%02X%02X", $4, $3, $2, $1}')
+put "$gw_router" /device/listener.sh <<'SH'
+set -eu
+worker=$(cat /device/runtime.pid)
+cat "/proc/$worker/net/tcp" > /device/worker.tcp
+for fd in /proc/$worker/fd/*; do
+  value=$(readlink "$fd" 2>/dev/null || true)
+  case "$value" in socket:*) printf '%s %s\n' "$fd" "$value";; esac
+done > /device/worker.sockets
+awk -v address="$1" 'NR == FNR {gsub(/[^0-9]/,"",$2); owned[$2]=1; next} index($2,address ":") == 1 && $4 == "0A" && ($10 in owned) {print $2, $10}' /device/worker.sockets /device/worker.tcp > /device/listener.bound
+test "$(wc -l < /device/listener.bound)" -eq 1
+SH
+gw_deadline=$(( $(date +%s) + 5 ))
+until gexec sh -eu -c 'grep -q "$1:0035 .* 0A " /proc/net/tcp' sh "$gw_hex"; do
+  [ "$(date +%s)" -lt "$gw_deadline" ] || fail 'competing TCP listener did not become ready'
+  sleep 1
+done
+gexec sh /device/listener.sh "$gw_hex"
+gexec cat /device/worker.tcp > "$gw_root/worker.tcp"
+gexec cat /device/worker.sockets > "$gw_root/worker.sockets"
+gexec cat /device/listener.bound > "$gw_root/listener.bound"
+gw_competing=$(gexec cat /device/competing.pid)
+gw_foreign=$(awk -v address="$gw_hex:0035" '$2 == address && $4 == "0A" {print $10}' "$gw_root/worker.tcp")
+[ -n "$gw_foreign" ] && [ "$(printf '%s\n' "$gw_foreign" | wc -l)" -eq 1 ] || fail 'competing listener is ambiguous'
+gexec sh -eu -c 'for fd in /proc/$1/fd/*; do readlink "$fd" || true; done' sh "$gw_competing" > "$gw_root/competing.sockets"
+grep -Fxq "socket:[$gw_foreign]" "$gw_root/competing.sockets" || fail 'competing socket owner is unknown'
+if grep -Fq "socket:[$gw_foreign]" "$gw_root/worker.sockets"; then fail 'foreign listener belongs to worker'; fi
+gw_endpoint=$(awk '{print $1}' "$gw_root/listener.bound")
+gw_port=$((0x${gw_endpoint##*:}))
+[ "$gw_port" -gt 0 ] && [ "$gw_port" -ne 53 ] || fail 'worker listener selection chose competing port'
+[ "$gw_seat" = 198.51.100.1 ] || fail 'unexpected fixture TUN seat'
 gexec nft delete element inet trial_fence held "{ $gw_client_ip }"
 docker exec "$gw_client" /fixture/wire query "$gw_router_ip:53" admitted.fixture 203.0.113.7
+if docker exec "$gw_client" /fixture/wire fetch 203.0.113.7:8080 > "$gw_root/input-denied-fetch.log" 2>&1; then fail 'forwarding rules bypassed internal INPUT denial'; fi
+gexec nft -j list chain inet fw4 input > "$gw_root/input.denied.json"
+jq -e '[.nftables[].rule? | select(.comment == "seatrial-dynet-input-denied") | .expr[] | .counter? | select(.packets > 0)] | length == 1' "$gw_root/input.denied.json" >/dev/null
+gexec kill -0 "$(gexec cat /device/runtime.pid)"
+docker exec "$gw_control" /fixture/wire fetch 203.0.113.7:8080
+gexec nft insert rule inet fw4 input iifname dynet9 ip saddr 198.51.100.128 ip daddr "$gw_seat" tcp dport "$gw_port" counter accept comment '"seatrial-dynet-in"'
+docker exec "$gw_client" /fixture/wire fetch 203.0.113.7:8080
+printf '%s\n' 'Forwarding alone failed; PID-owned TCP INPUT admission excluded the foreign TCP53 listener and restored HTTP.'
 docker exec "$gw_client" /fixture/wire fixed "$gw_router_ip:53"
 docker exec "$gw_client" /fixture/wire pressure "$gw_router_ip:53" > "$gw_root/pressure.log" 2>&1 &
 gw_pressure=$!
@@ -177,6 +224,8 @@ gexec nft -j list chain inet fw4 forward > "$gw_root/admission.observed.json"
 for gw_tag in seatrial-dynet-out seatrial-dynet-back; do
   jq -e --arg tag "$gw_tag" '[.nftables[].rule? | select(.comment == $tag) | .expr[] | .counter? | select(.packets > 0)] | length == 1' "$gw_root/admission.observed.json" >/dev/null
 done
+gexec nft -j list chain inet fw4 input > "$gw_root/input.admitted.json"
+jq -e '[.nftables[].rule? | select(.comment == "seatrial-dynet-in") | .expr[] | .counter? | select(.packets > 0)] | length == 1' "$gw_root/input.admitted.json" >/dev/null
 gexec conntrack -L -s "$gw_client_ip" -d 203.0.113.8 -o extended > "$gw_root/protected.ct" 2> "$gw_root/protected.ct.stderr"
 if grep -q '\[OFFLOAD\]' "$gw_root/protected.ct"; then fail 'selected capture path became offloaded'; fi
 docker exec "$gw_client" /fixture/wire fixed "$gw_router_ip:53"
@@ -197,6 +246,8 @@ for gw_tag in seatrial-dynet-out seatrial-dynet-back; do
   gw_handle=$(gexec nft -j list chain inet fw4 forward | jq -er --arg tag "$gw_tag" '[.nftables[].rule? | select(.comment == $tag)] | select(length == 1) | .[0].handle')
   gexec nft delete rule inet fw4 forward handle "$gw_handle"
 done
+gw_handle=$(gexec nft -j list chain inet fw4 input | jq -er '[.nftables[].rule? | select(.comment == "seatrial-dynet-in")] | select(length == 1) | .[0].handle')
+gexec nft delete rule inet fw4 input handle "$gw_handle"
 gexec nft -s list table inet fw4 > "$gw_root/fw4.after"
 cmp "$gw_root/fw4.before" "$gw_root/fw4.after"
 gexec conntrack -L -p udp -s "$gw_client_ip" --sport 40053 --dport 53 -o extended > "$gw_root/stale-dns.ct" 2> "$gw_root/stale-dns.stderr"
