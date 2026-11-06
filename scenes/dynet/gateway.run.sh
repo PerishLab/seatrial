@@ -171,7 +171,7 @@ for fd in /proc/$worker/fd/*; do
   value=$(readlink "$fd" 2>/dev/null || true)
   case "$value" in socket:*) printf '%s %s\n' "$fd" "$value";; esac
 done > /device/worker.sockets
-awk -v address="$1" 'NR == FNR {gsub(/[^0-9]/,"",$2); owned[$2]=1; next} index($2,address ":") == 1 && $4 == "0A" && ($10 in owned) {print $2, $10}' /device/worker.sockets /device/worker.tcp > /device/listener.bound
+awk -v address="$1" 'NR == FNR {gsub(/[^0-9]/,"",$2); owned[$2]=1; next} index($2,address ":") == 1 && $2 != (address ":3BF9") && $4 == "0A" && ($10 in owned) {print $2, $10}' /device/worker.sockets /device/worker.tcp > /device/listener.bound
 test "$(wc -l < /device/listener.bound)" -eq 1
 SH
 gw_deadline=$(( $(date +%s) + 5 ))
@@ -189,9 +189,12 @@ gw_foreign=$(awk -v address="$gw_hex:0035" '$2 == address && $4 == "0A" {print $
 gexec sh -eu -c 'for fd in /proc/$1/fd/*; do readlink "$fd" || true; done' sh "$gw_competing" > "$gw_root/competing.sockets"
 grep -Fxq "socket:[$gw_foreign]" "$gw_root/competing.sockets" || fail 'competing socket owner is unknown'
 if grep -Fq "socket:[$gw_foreign]" "$gw_root/worker.sockets"; then fail 'foreign listener belongs to worker'; fi
+gw_resolver=$(awk -v address="$gw_hex:3BF9" '$2 == address && $4 == "0A" {print $10}' "$gw_root/worker.tcp")
+[ -n "$gw_resolver" ] && [ "$(printf '%s\n' "$gw_resolver" | wc -l)" -eq 1 ] || fail 'configured TCP DNS listener is missing or ambiguous'
+grep -Fq "socket:[$gw_resolver]" "$gw_root/worker.sockets" || fail 'configured TCP DNS listener owner is unknown'
 gw_endpoint=$(awk '{print $1}' "$gw_root/listener.bound")
 gw_port=$((0x${gw_endpoint##*:}))
-[ "$gw_port" -gt 0 ] && [ "$gw_port" -ne 53 ] || fail 'worker listener selection chose competing port'
+[ "$gw_port" -gt 0 ] && [ "$gw_port" -ne 53 ] && [ "$gw_port" -ne 15353 ] || fail 'worker listener selection chose competing port'
 [ "$gw_seat" = 198.51.100.1 ] || fail 'unexpected fixture TUN seat'
 gexec nft delete element inet trial_fence held "{ $gw_client_ip }"
 docker exec "$gw_client" /fixture/wire query "$gw_router_ip:53" admitted.fixture 203.0.113.7
@@ -203,12 +206,14 @@ docker exec "$gw_control" /fixture/wire fetch 203.0.113.7:8080
 gexec nft insert rule inet fw4 input iifname dynet9 ip saddr 198.51.100.128 ip daddr "$gw_seat" tcp dport "$gw_port" counter accept comment '"seatrial-dynet-in"'
 docker exec "$gw_client" /fixture/wire fetch 203.0.113.7:8080
 printf '%s\n' 'Forwarding alone failed; PID-owned TCP INPUT admission excluded the foreign TCP53 listener and restored HTTP.'
+docker exec "$gw_client" /fixture/wire fallback "$gw_router_ip:53"
 docker exec "$gw_client" /fixture/wire fixed "$gw_router_ip:53"
 docker exec "$gw_client" /fixture/wire pressure "$gw_router_ip:53" > "$gw_root/pressure.log" 2>&1 &
 gw_pressure=$!
 sleep 1
 for gw_round in 1 2 3 4 5; do
   docker exec "$gw_client" /fixture/wire query "$gw_router_ip:53" "neutral-$gw_round.fixture" 203.0.113.7
+  docker exec "$gw_client" /fixture/wire stream "$gw_router_ip:53" "neutral-$gw_round.fixture" 203.0.113.7
   docker exec "$gw_client" /fixture/wire fetch 203.0.113.7:8080
   docker exec "$gw_control" /fixture/wire query "$gw_router_ip:53" "other-$gw_round.protected.fixture" 203.0.113.7
   docker exec "$gw_control" /fixture/wire fetch 203.0.113.7:8080
@@ -218,6 +223,7 @@ wait "$gw_pressure" || { cat "$gw_root/pressure.log"; fail 'a protected query es
 gexec grep -Fq 'accepted silent-node connection' /device/silent.log
 gexec kill -0 "$(gexec cat /device/runtime.pid)"
 docker exec "$gw_client" /fixture/wire query "$gw_router_ip:53" after.protected.fixture closed
+docker exec "$gw_client" /fixture/wire stream "$gw_router_ip:53" after.protected.fixture closed
 docker exec "$gw_control" /fixture/wire fetch 203.0.113.8:8080
 if docker exec "$gw_client" /fixture/wire fetch 203.0.113.8:8080 > "$gw_root/protected-fetch.log" 2>&1; then fail 'protected held address escaped to the direct backend'; fi
 gexec nft -j list chain inet fw4 forward > "$gw_root/admission.observed.json"

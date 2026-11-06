@@ -60,7 +60,7 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   retains complete Scene binding in run/v1. Explicit setup controls belong
   inside their declared material root; no parent lookup or basename alias applies. Depot
   metadata must remain outside the execution root so asset names are preserved.
-  `scenes/dynet/dns.rs` owns the coupled control trial's wire fixture, built as
+  `scenes/dynet/wire/main.rs` owns the coupled control trial's wire fixture, built as
   `seatrial-dynet`; its setup and assertions live in the adjacent shell scene.
   `scenes/keel/src` owns the Rust Keel driver, built as the CLI package's
   `seatrial-keel` auxiliary binary; its product logic stays outside the CLI.
