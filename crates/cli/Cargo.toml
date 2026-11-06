@@ -29,4 +29,4 @@ path = "../../scenes/keel/src/main.rs"
 
 [[bin]]
 name = "seatrial-dynet"
-path = "../../scenes/dynet/dns.rs"
+path = "../../scenes/dynet/wire/main.rs"

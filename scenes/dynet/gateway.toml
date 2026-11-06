@@ -2,3 +2,4 @@ image = "plumb"
 timeout = 600
 command = ["sh", "-eu", "gateway.run.sh"]
 default = false
+bug = "PerishLab/dynet#152"

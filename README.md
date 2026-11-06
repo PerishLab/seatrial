@@ -342,7 +342,7 @@ closed and silent proxy nodes receive concurrent unique protected DNS requests.
 Direct DNS/HTTP must remain positive while protected DNS and a held destination
 refuse direct escape. Counter evidence proves both directions of TUN forwarding
 and admission to the worker's internal TCP listener.
-Ordinary direct traffic keeps its kernel path and may still use flow offload.
+Unclaimed direct traffic keeps its kernel path and may still use flow offload.
 
 The fixture owns representative fw4 INPUT and forward policies and a software flowtable.
 Both clients first establish held HTTP connections and must actually report
@@ -354,7 +354,14 @@ INPUT denies the recirculated TUN connection, and selected HTTP must fail before
 an exact internal TCP rule restores it. A foreign process also listens on TCP53
 at the TUN address. Selection joins listening socket inodes with the worker's
 open descriptors, excludes that foreign socket and admits only the owned TUN,
-spare/seat address pair and worker port. Both denial and admission are counted.
+spare/seat address pair and worker port. Both denial and admission are counted. The
+configured TCP DNS listener is separately proved PID-owned and excluded from
+that data-listener selection. The standard-library fixture serves UDP and TCP
+DNS; a truncated UDP reply requires a TCP retry with a full large response.
+Fragmented length-prefix input, pipelined IDs and connection reuse must work.
+Direct TCP DNS joins UDP/HTTP controls during protected-node pressure, while
+protected TCP DNS remains closed. The original formal TCP refusal is tracked
+in [Dynet#152](https://github.com/PerishLab/dynet/issues/152).
 Withdrawal fences before stopping the worker, then proves quiescence before
 explicit down and removes only its exact tagged admission rules. A fixed UDP
 source port proves DNS DNAT state survives rule removal; source-only conntrack

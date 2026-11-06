@@ -17,7 +17,7 @@ paths = ["scenes/concord/provider.py"]
 syntax = "environment"
 
 [[grant]]
-paths = ["scenes/dynet/dns.rs"]
+paths = ["scenes/dynet/wire/main.rs"]
 syntax = "environment"
 
 [limit]
