@@ -3,6 +3,9 @@ use std::net::{TcpListener, TcpStream, UdpSocket};
 use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
+const KEEP: &[u8] =
+    b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n";
+
 fn main() -> ExitCode {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     match run(&args) {
@@ -25,6 +28,8 @@ fn run(args: &[String]) -> io::Result<()> {
         "blackhole" => Endpoint(value(1)).blackhole(),
         "http" => Endpoint(value(1)).http(),
         "fetch" => Endpoint(value(1)).fetch(),
+        "hold" => Endpoint(value(1)).hold(),
+        "fixed" => Endpoint(value(1)).fixed(),
         _ => Err(io::Error::other("unknown fixture mode")),
     }
 }
@@ -77,8 +82,8 @@ impl Endpoint<'_> {
         }
     }
 
-    fn query(&self, name: &str) -> io::Result<Vec<u8>> {
-        let socket = UdpSocket::bind("0.0.0.0:0")?;
+    fn query(&self, name: &str, port: u16) -> io::Result<Vec<u8>> {
+        let socket = UdpSocket::bind(("0.0.0.0", port))?;
         socket.set_read_timeout(Some(Duration::from_millis(800)))?;
         socket.connect(self.0)?;
         let mut body = vec![0x41, 0x23, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0];
@@ -107,7 +112,7 @@ impl Endpoint<'_> {
             "closed" => [0; 4],
             _ => address(expected)?,
         };
-        match self.query(name) {
+        match self.query(name, 0) {
             Ok(body) if closed && (body[3] & 15 != 0 || body[6..8] == [0, 0]) => (),
             Err(error)
                 if closed
@@ -118,6 +123,15 @@ impl Endpoint<'_> {
         if !closed {
             println!("dns {}us", began.elapsed().as_micros());
         }
+        Ok(())
+    }
+
+    fn fixed(&self) -> io::Result<()> {
+        let body = self.query("fixed.fixture", 40053)?;
+        if !positive(&body, &[203, 0, 113, 7]) {
+            return Err(io::Error::other("fixed-port DNS response disagrees"));
+        }
+        println!("fixed-port DNS positive");
         Ok(())
     }
 
@@ -161,15 +175,35 @@ impl Endpoint<'_> {
 
     fn http(&self) -> io::Result<()> {
         for stream in TcpListener::bind(self.0)?.incoming() {
-            let mut stream = stream?;
-            stream.set_read_timeout(Some(Duration::from_secs(2)))?;
-            let mut room = [0u8; 1024];
-            if stream.read(&mut room)? == 0 {
-                continue;
-            }
+            let stream = stream?;
+            std::thread::spawn(move || {
+                if let Err(error) = respond(stream) {
+                    eprintln!("HTTP fixture: {error}");
+                }
+            });
+        }
+        Ok(())
+    }
+
+    fn hold(&self) -> io::Result<()> {
+        let mut stream = TcpStream::connect_timeout(
+            &self.0.parse().map_err(io::Error::other)?,
+            Duration::from_secs(2),
+        )?;
+        stream.set_read_timeout(Some(Duration::from_secs(2)))?;
+        stream.set_write_timeout(Some(Duration::from_secs(2)))?;
+        let began = Instant::now();
+        let mut room = [0; KEEP.len()];
+        while began.elapsed() < Duration::from_secs(30) {
             stream.write_all(
-                b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                b"GET / HTTP/1.1\r\nHost: neutral.fixture\r\nConnection: keep-alive\r\n\r\n",
             )?;
+            stream.read_exact(&mut room)?;
+            if room != KEEP {
+                return Err(io::Error::other("held HTTP response disagrees"));
+            }
+            println!("held {}ms", began.elapsed().as_millis());
+            std::thread::sleep(Duration::from_millis(100));
         }
         Ok(())
     }
@@ -192,4 +226,35 @@ impl Endpoint<'_> {
         println!("http {}us", began.elapsed().as_micros());
         Ok(())
     }
+}
+
+fn request(stream: &mut TcpStream) -> io::Result<Option<bool>> {
+    let mut body = Vec::new();
+    while !body.ends_with(b"\r\n\r\n") {
+        let mut byte = [0];
+        if stream.read(&mut byte)? == 0 {
+            return Ok(None);
+        }
+        body.push(byte[0]);
+        if body.len() > 1024 {
+            return Err(io::Error::other("HTTP fixture request too large"));
+        }
+    }
+    let wanted = b"Connection: keep-alive";
+    Ok(Some(body.windows(wanted.len()).any(|part| part == wanted)))
+}
+
+fn respond(mut stream: TcpStream) -> io::Result<()> {
+    stream.set_read_timeout(Some(Duration::from_secs(3)))?;
+    while let Some(keep) = request(&mut stream)? {
+        let reply = match keep {
+            true => KEEP,
+            false => b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        };
+        stream.write_all(reply)?;
+        if !keep {
+            return Ok(());
+        }
+    }
+    Ok(())
 }

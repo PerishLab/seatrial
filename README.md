@@ -335,23 +335,33 @@ this case's store. Lane teardown removes all stores, containers and namespace.
 
 ## Forwarded Dynet gateway
 
-`cargo run -- run --scenes scenes/dynet --case dynet-gateway` explicitly selects
-an isolated gateway trial. Its wire helper builds from the scene material root
-using only the Rust standard library. The gateway forwards one selected client;
-an unrelated client and router-originated DNS remain controls. Two proxy nodes
-are unavailable: one refuses connections and one accepts without replying.
-Unique protected DNS requests run concurrently with positive direct DNS and
-HTTP checks. Protected answers must remain closed, the worker must survive,
-and explicit withdrawal must preserve the unrelated firewall table.
+`cargo run -- run --scenes scenes/dynet --case dynet-gateway` selects an opt-in
+LAN/WAN gateway trial. Its standard-library wire helper builds inside the scene
+material root. An unrelated client and router-originated DNS remain controls;
+closed and silent proxy nodes receive concurrent unique protected DNS requests.
+Direct DNS/HTTP must remain positive while protected DNS and a held destination
+refuse direct escape. Counter evidence proves both directions of TUN forwarding.
+Ordinary direct traffic keeps its kernel path and may still use flow offload.
 
-The case uses only generated fixture identities and labelled lane resources,
-without host ports or production nodes. It installs exact Debian trixie
-`iproute2=6.15.0-1` and `nftables=1.1.3-1` tools in disposable containers. Resource
-limits bound the worker to 512 descriptors and 512 MiB of address space. This
-is an opt-in diagnostic, not native OpenWrt, procd, hardware offload, IPv6,
-commercial proxy throughput or long-duration qualification. The development
-run may follow Dynet's RC channel through an explicit temporary pins file;
-its report records the exact resolved bytes and material digest.
+The fixture owns a representative fw4 forward policy and software flowtable.
+Both clients first establish held HTTP connections and must actually report
+`OFFLOAD`. An earlier ingress fence interrupts only the selected offloaded
+connection. Source-only conntrack retirement and two explicit TUN admission
+rules prepare capture; the unrelated held connection must survive throughout.
+Withdrawal fences before stopping the worker, then proves quiescence before
+explicit down and removes only its exact tagged admission rules. A fixed UDP
+source port proves DNS DNAT state survives rule removal; source-only conntrack
+retirement must restore that same client port after the explicit test ends.
+The original fw4 ruleset must match again. No global conntrack or flowtable
+flush is used, and unknown ownership or failed observations refuse.
+
+Only generated fixture identities and labelled lane resources are used, with
+no host ports or production nodes. Disposable Debian trixie containers install
+`iproute2=6.15.0-1`, `nftables=1.1.3-1` and `conntrack=1:1.4.8-2`. The worker has
+512 descriptors and 512 MiB of address space. This is a diagnostic, not native
+OpenWrt, PPPoE, procd, hardware offload, IPv6/DoH, commercial throughput or
+long-duration qualification. An explicit temporary pins file may follow the
+Dynet RC channel; reports bind the exact resolved bytes and material digest.
 
 A product configuration may list `binaries = ["secrets-api"]` to request extra
 executables from the same verified archive. The product-named executable remains
