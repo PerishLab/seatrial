@@ -16,6 +16,10 @@ syntax = "environment"
 paths = ["scenes/concord/provider.py"]
 syntax = "environment"
 
+[[grant]]
+paths = ["scenes/dynet/dns.rs"]
+syntax = "environment"
+
 [limit]
 block = 4
 fanout = 10

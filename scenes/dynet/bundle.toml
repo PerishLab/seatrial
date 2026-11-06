@@ -11,3 +11,8 @@ profile = "host/v1"
 id = "dynet-control"
 manifest = "control.toml"
 group = "dynet"
+
+[[cases]]
+id = "dynet-gateway"
+manifest = "gateway.toml"
+group = "dynet"
