@@ -332,6 +332,27 @@ payload masking and the client's received-generation floor through the public
 CLI. SQLite observation uses the configured pinned SQLite image against only
 this case's store. Lane teardown removes all stores, containers and namespace.
 
+
+## Forwarded Dynet gateway
+
+`cargo run -- run --scenes scenes/dynet --case dynet-gateway` explicitly selects
+an isolated gateway trial. Its wire helper builds from the scene material root
+using only the Rust standard library. The gateway forwards one selected client;
+an unrelated client and router-originated DNS remain controls. Two proxy nodes
+are unavailable: one refuses connections and one accepts without replying.
+Unique protected DNS requests run concurrently with positive direct DNS and
+HTTP checks. Protected answers must remain closed, the worker must survive,
+and explicit withdrawal must preserve the unrelated firewall table.
+
+The case uses only generated fixture identities and labelled lane resources,
+without host ports or production nodes. It installs exact Debian trixie
+`iproute2=6.15.0-1` and `nftables=1.1.3-1` tools in disposable containers. Resource
+limits bound the worker to 512 descriptors and 512 MiB of address space. This
+is an opt-in diagnostic, not native OpenWrt, procd, hardware offload, IPv6,
+commercial proxy throughput or long-duration qualification. The development
+run may follow Dynet's RC channel through an explicit temporary pins file;
+its report records the exact resolved bytes and material digest.
+
 A product configuration may list `binaries = ["secrets-api"]` to request extra
 executables from the same verified archive. The product-named executable remains
 `SEATRIAL_BINARY_<PRODUCT>`; `SEATRIAL_BINARIES_<PRODUCT>` is a JSON map of all
