@@ -340,14 +340,21 @@ LAN/WAN gateway trial. Its standard-library wire helper builds inside the scene
 material root. An unrelated client and router-originated DNS remain controls;
 closed and silent proxy nodes receive concurrent unique protected DNS requests.
 Direct DNS/HTTP must remain positive while protected DNS and a held destination
-refuse direct escape. Counter evidence proves both directions of TUN forwarding.
+refuse direct escape. Counter evidence proves both directions of TUN forwarding
+and admission to the worker's internal TCP listener.
 Ordinary direct traffic keeps its kernel path and may still use flow offload.
 
-The fixture owns a representative fw4 forward policy and software flowtable.
+The fixture owns representative fw4 INPUT and forward policies and a software flowtable.
 Both clients first establish held HTTP connections and must actually report
 `OFFLOAD`. An earlier ingress fence interrupts only the selected offloaded
 connection. Source-only conntrack retirement and two explicit TUN admission
-rules prepare capture; the unrelated held connection must survive throughout.
+rules prepare capture of the explicit fixture destination range; the unrelated
+held connection must survive throughout.
+INPUT denies the recirculated TUN connection, and selected HTTP must fail before
+an exact internal TCP rule restores it. A foreign process also listens on TCP53
+at the TUN address. Selection joins listening socket inodes with the worker's
+open descriptors, excludes that foreign socket and admits only the owned TUN,
+spare/seat address pair and worker port. Both denial and admission are counted.
 Withdrawal fences before stopping the worker, then proves quiescence before
 explicit down and removes only its exact tagged admission rules. A fixed UDP
 source port proves DNS DNAT state survives rule removal; source-only conntrack
