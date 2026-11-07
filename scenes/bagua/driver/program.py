@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import select
 import signal
 import sys
 import termios
@@ -17,14 +18,22 @@ def record(root, name, value):
 
 def echo(root):
     tty.setraw(0)
-    def size(signum, frame):
+    pending = [False]
+    def resized(signum, frame):
+        pending[0] = True
+    def size():
         rows, columns = termios.tcgetwinsize(0)
         record(root, "echo.size", json.dumps({"columns": columns, "rows": rows}))
-    signal.signal(signal.SIGWINCH, size)
-    size(None, None)
+    signal.signal(signal.SIGWINCH, resized)
+    size()
     os.write(1, b"\x1b]52;c;bagua-outer-secret\x07\x1b[2J\x1b[HREADY\x1b[?2004h\x1b[?1000h\x1b[?1006h")
     with (root / "input.bin").open("ab", buffering=0) as log:
         while True:
+            if pending[0]:
+                pending[0] = False
+                size()
+            if not select.select([0], [], [], 0.05)[0]:
+                continue
             data = os.read(0, 4096)
             if not data:
                 return
