@@ -83,6 +83,10 @@ def interactive(host):
         wait(lambda: len(sessions(monitor)[-1]["windows"]) == 2)
         panes = [pane["id"] for window in sessions(monitor)[-1]["windows"].values() for pane in window["panes"].values()]
         wait(lambda: all("READY" in text(monitor.screen(target)) for target in panes))
+        for columns in [64, 72, 48, 80] * 2:
+            view.resize(columns, 25)
+            time.sleep(0.03)
+            view.drain()
         view.write(b"\x07w\x07\t")
         observer = Terminal(host, ["connect", str(session)], (12, 4))
         peers = wait(lambda: [int(key) for key in sessions(monitor)[-1]["clients"] if int(key) not in (monitor.hello["client"], state["control"]["owner"])])
