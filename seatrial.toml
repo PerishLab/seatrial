@@ -29,6 +29,11 @@ authority = "https://depot.seatrial.perish.uk"
 product = "seatrial"
 channel = "stable"
 
+[bagua]
+channel = "rc"
+authority = "https://releases.bagua.perish.uk"
+image = "ghcr.io/perishlab/images:stable"
+
 [hardrig]
 channel = "stable"
 authority = "https://releases.hardrig.perish.uk"
