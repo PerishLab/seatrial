@@ -1,0 +1,23 @@
+format = 2
+
+[[groups]]
+id = "bagua"
+root = "."
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "bagua-workspace"
+manifest = "cases/workspace.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-lifecycle"
+manifest = "cases/lifecycle.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-flow"
+manifest = "cases/flow.toml"
+group = "bagua"

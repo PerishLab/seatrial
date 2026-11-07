@@ -76,6 +76,12 @@ the run. Excluded cases remain explicitly selectable. A group's explicit
 
 ## Explicit case mappings
 
+Bagua's independent catalogue is `scenes/bagua`: `bagua-workspace`,
+`bagua-lifecycle` and `bagua-flow` drive the verified RC executable through
+wire v2, its public CLI and real case-owned PTYs. The scene README specifies
+the assertions and qualification boundary. The runtime follows Images stable;
+no product source or runtime Cargo build is involved.
+
 Bundle format2 separates stable IDs from manifest locations and material roots:
 
 ```toml

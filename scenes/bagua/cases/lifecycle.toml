@@ -1,0 +1,4 @@
+products = ["bagua"]
+image = "bagua"
+timeout = 150
+command = ["sh", "-eu", "case.run.sh", "lifecycle"]
