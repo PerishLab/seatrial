@@ -1,0 +1,51 @@
+{
+  "schema": "plumb.release.subjects/v1",
+  "product": "seatrial",
+  "cases": [
+    {
+      "id": "context",
+      "role": "normative",
+      "subjects": [
+        "concord"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "concord"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "context.py",
+        "case.run.sh",
+        "provider.py"
+      ]
+    },
+    {
+      "id": "release",
+      "role": "normative",
+      "subjects": [
+        "concord"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "concord"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "release.py",
+        "context.py",
+        "proxy.py",
+        "provider.py"
+      ]
+    }
+  ]
+}
