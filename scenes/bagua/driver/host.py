@@ -21,7 +21,9 @@ class Host:
         self.clients = []
         self.children = []
         self.log = (self.root / "host.log").open("xb")
-        self.process = subprocess.Popen([self.binary, "--socket", str(self.path), "serve"], env=self.env, stdout=self.log, stderr=self.log)
+        config = self.root / "server.toml"
+        settings = ["--config", str(config)] if config.exists() else ["--no-config"]
+        self.process = subprocess.Popen([self.binary, *settings, "--socket", str(self.path), "serve"], env=self.env, stdout=self.log, stderr=self.log)
         wait(lambda: self.path.exists() or self.process.poll() is not None)
         assert self.process.poll() is None
         assert self.path.stat().st_mode & 0o777 == 0o600

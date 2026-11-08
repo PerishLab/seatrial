@@ -8,6 +8,7 @@ import sys
 import termios
 import time
 import tty
+from daily.program import modes
 
 
 def record(root, name, value):
@@ -91,8 +92,9 @@ def main():
     root = Path(sys.argv[2])
     (root / (mode + ".pid")).write_text(str(os.getpid()))
     (root / ("child-" + str(os.getpid()) + ".pid")).write_text(str(os.getpid()))
-    modes = {"echo": echo, "flood": flood, "slow": slow, "exit": exited, "eof": eof, "stubborn": stubborn}
-    modes[mode](root)
+    actions = {"echo": echo, "flood": flood, "slow": slow, "exit": exited, "eof": eof, "stubborn": stubborn}
+    actions.update(modes())
+    actions[mode](root)
 
 
 if __name__ == "__main__":

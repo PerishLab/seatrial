@@ -146,3 +146,55 @@ group = "keel"
 id = "outage"
 manifest = "keel/store/outage.toml"
 group = "keel"
+
+[[groups]]
+id = "bagua"
+root = "bagua"
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "bagua-workspace"
+manifest = "bagua/cases/workspace.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-lifecycle"
+manifest = "bagua/cases/lifecycle.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-flow"
+manifest = "bagua/cases/flow.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-config"
+manifest = "bagua/cases/config.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-entry"
+manifest = "bagua/cases/entry.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-history"
+manifest = "bagua/cases/history.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-input"
+manifest = "bagua/cases/input.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-mouse"
+manifest = "bagua/cases/mouse.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-display"
+manifest = "bagua/cases/display.toml"
+group = "bagua"

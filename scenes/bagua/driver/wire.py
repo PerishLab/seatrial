@@ -12,7 +12,8 @@ class Wire:
         self.bytes = bytearray()
         self.next = 0
         self.hello = self.read()["Hello"]
-        assert self.hello["version"] == 2
+        self.version = self.hello["version"]
+        assert self.version == 7, self.hello
 
     def close(self):
         self.socket.close()
@@ -35,7 +36,7 @@ class Wire:
 
     def send(self, command):
         self.next += 1
-        data = json.dumps({"version": 2, "id": self.next, "command": command}).encode()
+        data = json.dumps({"version": self.version, "id": self.next, "command": command}).encode()
         assert len(data) <= 131072
         self.socket.sendall(struct.pack("!I", len(data)) + data)
         return self.next
@@ -52,7 +53,6 @@ class Wire:
                 failure = reply["result"]["Err"]
                 code = failure["Workspace"] if isinstance(failure, dict) else failure
                 assert code.lower() == error, messages
-                return messages
             finished = message.get("Finished", {})
             if finished.get("request") == request:
                 self.check(messages, error)
