@@ -54,3 +54,5 @@ Seatrial #90 preserves the public admission boundary: an immediate matching Repl
 Seatrial #91 keeps the long copy inside the advertised 256-column, 64-row host canvas. The 38400-byte sample uses 12800 supported base-plus-combining cells in 50 rows, with matching in-page coordinates. Each sample waits for its actual complete visible content before selection; no fixed delay or unloaded-row assumption supplies readiness. The separate CJK wide-cell and hard-newline checks remain.
 
 The valid combining-text sample exposed [Bagua #47](https://github.com/PerishLab/bagua/issues/47): the first RC loses base characters across UTF-8 input chunks. The required mouse case retains this counterexample and remains selected for the complete nine-case qualification after the product fix.
+
+Seatrial #97 waits for the actual HISTORY-DONE screen before sending the first history gesture. Entering the outer alternate screen alone does not establish that the client has installed its initial typed screen. The complete 50000-row checks at 80 and 160 columns, frozen-page copying, wheel/live navigation, invalid cursors and shared budgets remain required.
