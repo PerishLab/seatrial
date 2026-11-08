@@ -7,7 +7,12 @@ is used. The supplied provider fixture admits only the required read protocol.
 `context` creates a private Git repository and local bare remote, then registers
 the subject while foreign Git repository, index, namespace and configuration
 values are inherited by Concord. Registration must identify the subject and
-retain its refs and clean worktree. This is the published consumer of #158.
+retain its refs and clean worktree. The case selects an isolated explicit config
+and data home, checks the stable `concord.space/v1` identity and private
+`workspace` controls, and confirms that neither the trial root nor the source
+checkout acquires legacy Concord management entries. Identity survives registration
+and audit. These assertions consume Concord's data-home contract (#451); no old
+Space-selector fallback is carried by the Scene. This is the published consumer of #158.
 
 `release` supplies an adversarial release review for the intentionally absent
 `v0.0.0` distribution URI under the real Concord HTTPS authority. That URI is
@@ -18,7 +23,9 @@ successful connections tunnel TLS unchanged, without a certificate or trust
 override. Each failed combination must retain its safe classification, never
 claim a changed record or disclose the fixture's diagnostic text. No review or
 closure is sent to GitHub. The case qualifies #404's negative observation path,
-not release inclusion or a successful closure.
+not release inclusion or a successful closure. The provider-only case must leave
+the selected data home's `workspace` absent; explicit config/home selection does
+not grant local execution state authority.
 
 Every case owns its volume, container and proxy. No host port is published.
 Concord subprocesses have a deadline, the proxy is joined, and the runner's
