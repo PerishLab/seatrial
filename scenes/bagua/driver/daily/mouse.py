@@ -1,5 +1,4 @@
 import base64
-import time
 
 from host import emit
 from terminal import Terminal
@@ -30,10 +29,10 @@ def copy(host, sample):
     client = host.wire()
     try:
         wait(lambda: (host.root / "clipboard.ready").exists())
-        until(view, content.split("\r")[0][:5])
+        ready, count = sample["ready"]
+        wait(lambda: view.screen().count(ready) == count)
         value = state(client)
         assert not copied(view)
-        time.sleep(0.2)
         drag(view, sample["end"])
         until(view, f"Copied {len(expected.encode())} bytes locally")
         expected = "52;c;" + base64.b64encode(expected.encode()).decode()
@@ -123,11 +122,11 @@ def divider(host):
 
 def run(host):
     samples = [
-        {"target": "local", "source": "hello", "text": "hello", "size": (80, 25), "end": (5, 1)},
-        {"target": "osc52", "source": "hello", "text": "hello", "size": (80, 25), "end": (5, 1)},
-        {"target": "osc52", "source": "界" * 12800, "text": "界" * 12800, "size": (256, 128), "end": (256, 100)},
-        {"target": "osc52", "source": "α界\r\nbeta", "text": "α界\nbeta", "size": (80, 25), "end": (4, 2)},
-        {"target": "osc52", "source": "界", "text": "界", "size": (80, 25), "end": (2, 1)},
+        {"target": "local", "source": "hello", "text": "hello", "size": (80, 25), "end": (5, 1), "ready": ("hello", 1)},
+        {"target": "osc52", "source": "hello", "text": "hello", "size": (80, 25), "end": (5, 1), "ready": ("hello", 1)},
+        {"target": "osc52", "source": "a\u0301" * 12800, "text": "a\u0301" * 12800, "size": (256, 65), "end": (256, 50), "ready": ("a\u0301", 12800)},
+        {"target": "osc52", "source": "α界\r\nbeta", "text": "α界\nbeta", "size": (80, 25), "end": (4, 2), "ready": ("beta", 1)},
+        {"target": "osc52", "source": "界", "text": "界", "size": (80, 25), "end": (2, 1), "ready": ("界", 1)},
     ]
     for sample in samples:
         copy(host, sample)
