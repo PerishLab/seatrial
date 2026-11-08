@@ -19,7 +19,9 @@ def main():
         assert expected in checks["release"]["reason"], checks["release"]
         assert all(value["verdict"] == "satisfied" for name, value in checks.items() if name != "release"), checks
         print(f"release observation: {expected}; exactly two reads, unknown retained")
-    assert not (context.ROOT / "space" / ".concord").exists()
+    assert not (context.ROOT / "data" / "workspace").exists()
+    assert not (context.ROOT / ".concord").exists()
+    assert not (context.ROOT / ".concord.lock").exists()
 
 
 if __name__ == "__main__":

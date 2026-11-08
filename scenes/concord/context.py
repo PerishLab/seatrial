@@ -18,8 +18,9 @@ def invoke(args, extra=None):
 
 def setup():
     ROOT.mkdir(parents=True, exist_ok=True)
-    for name in ["home", "space"]:
+    for name in ["home", "data"]:
         (ROOT / name).mkdir()
+    (ROOT / "concord.toml").write_text("home = " + json.dumps(str(ROOT / "data")) + "\n")
     assert not (ROOT / "fixture.json").exists()
     invoke(["install", "-m", "755", str(SOURCE / "provider.sh"), str(ROOT / "provider")])
     VALUES.update({"SEATRIAL_CONCORD_SOURCE": str(SOURCE), "SEATRIAL_CONCORD_FIXTURE": str(ROOT / "fixture.json")})
@@ -27,7 +28,7 @@ def setup():
 
 
 def concord(args, extra=None):
-    return json.loads(invoke([BINARY, "--space", str(ROOT / "space"), "--json", *args], extra))
+    return json.loads(invoke([BINARY, "--config", str(ROOT / "concord.toml"), "--home", str(ROOT / "data"), "--json", *args], extra))
 
 
 def git(root, args):
@@ -38,6 +39,12 @@ def main():
     setup()
     (ROOT / "fixture.json").write_text(json.dumps({"mode": "context"}))
     concord(["issue", "bootstrap"])
+    workspace = ROOT / "data" / "workspace"
+    identity = json.loads((workspace / "identity.json").read_text())
+    assert identity["schema"] == "concord.space/v1"
+    assert len(identity["id"]) == 64 and all(value in "0123456789abcdef" for value in identity["id"])
+    for name in ["estate.sqlite3", "sudo"]:
+        assert (workspace / name).is_file()
     source = ROOT / "source"
     source.mkdir()
     remote = ROOT / "remote.git"
@@ -66,6 +73,13 @@ def main():
     assert before == git(source, ["show-ref"])
     assert git(source, ["status", "--porcelain"]) == ""
     assert not (ROOT / "foreign-index").exists()
+    audit = concord(["audit"])
+    assert audit["space"] == identity["id"] and audit["agreement"]["faults"] == []
+    assert json.loads((workspace / "identity.json").read_text()) == identity
+    assert (workspace / "locks" / "estate.lock").is_file()
+    for path in [ROOT, source]:
+        for name in [".concord", ".concord.lock", ".issues"]:
+            assert not (path / name).exists()
     print("registered the subject under foreign Git context; refs and source retained")
 
 
