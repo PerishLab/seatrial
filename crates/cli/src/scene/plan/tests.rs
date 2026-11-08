@@ -5,7 +5,7 @@ use super::select;
 #[test]
 fn catalog() {
     let suites = select(Path::new("../../scenes"), &[]).unwrap();
-    assert_eq!(suites.len(), 1);
+    assert_eq!(suites.len(), 2);
     assert_eq!(suites[0].scenes.len(), 28);
     let instances = suites[0]
         .scenes
@@ -115,4 +115,43 @@ fn optional() {
     let suites = select(root, &["tencent".into()]).unwrap();
     assert!(!suites[0].scenes[0].manifest.default);
     assert_eq!(suites[0].setup.products, ["hardrig", "runseal", "plumb"]);
+}
+
+#[test]
+fn bagua() {
+    let root = Path::new("../../scenes");
+    let expected = [
+        "bagua-workspace",
+        "bagua-lifecycle",
+        "bagua-flow",
+        "bagua-config",
+        "bagua-entry",
+        "bagua-history",
+        "bagua-input",
+        "bagua-mouse",
+        "bagua-display",
+    ];
+    let whole = select(root, &[]).unwrap();
+    let portable = select(&root.join("bagua"), &[]).unwrap();
+    let suite = whole
+        .iter()
+        .find(|suite| suite.source.ends_with("bagua"))
+        .unwrap();
+    assert_eq!(portable.len(), 1);
+    let names = |suite: &super::Suite| {
+        suite
+            .scenes
+            .iter()
+            .map(|scene| scene.name.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(names(suite), expected);
+    assert_eq!(names(&portable[0]), expected);
+    assert!(suite.control.is_none());
+    assert!(portable[0].control.is_none());
+    for scene in &suite.scenes {
+        assert!(scene.manifest.default);
+        assert_eq!(scene.manifest.products, ["bagua"]);
+        assert_eq!(scene.manifest.image.as_deref(), Some("bagua"));
+    }
 }

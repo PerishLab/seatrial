@@ -1,0 +1,264 @@
+{
+  "schema": "plumb.release.subjects/v1",
+  "product": "seatrial",
+  "cases": [
+    {
+      "id": "bagua-workspace",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/workspace.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-lifecycle",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/lifecycle.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-flow",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/flow.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-config",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/config.py",
+        "driver/daily/common.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-entry",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/entry.py",
+        "driver/daily/common.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-history",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/history.py",
+        "driver/daily/common.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-input",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/input.py",
+        "driver/daily/common.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-mouse",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/mouse.py",
+        "driver/daily/common.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    },
+    {
+      "id": "bagua-display",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/display.py",
+        "driver/daily/common.py",
+        "driver/main.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "case.run.sh"
+      ]
+    }
+  ]
+}

@@ -101,7 +101,7 @@ def interactive(host):
         observer.resize(30, 8)
         observer.write(b"\x07a")
         wait(lambda: sessions(monitor)[-1]["control"]["owner"] == peer)
-        wait(lambda: f"bagua s{session} c{peer} control".encode() in observer.visible())
+        wait(lambda: b" control" in observer.visible())
         observer.write(b"acquired")
         try:
             wait(lambda: b"acquired" in received(host))

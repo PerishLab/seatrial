@@ -21,3 +21,33 @@ group = "bagua"
 id = "bagua-flow"
 manifest = "cases/flow.toml"
 group = "bagua"
+
+[[cases]]
+id = "bagua-config"
+manifest = "cases/config.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-entry"
+manifest = "cases/entry.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-history"
+manifest = "cases/history.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-input"
+manifest = "cases/input.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-mouse"
+manifest = "cases/mouse.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-display"
+manifest = "cases/display.toml"
+group = "bagua"
