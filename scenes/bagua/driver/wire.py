@@ -53,6 +53,7 @@ class Wire:
                 failure = reply["result"]["Err"]
                 code = failure["Workspace"] if isinstance(failure, dict) else failure
                 assert code.lower() == error, messages
+                return messages
             finished = message.get("Finished", {})
             if finished.get("request") == request:
                 self.check(messages, error)

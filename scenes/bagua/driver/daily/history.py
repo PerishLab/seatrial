@@ -19,10 +19,14 @@ def page(client, pane, previous=None, top=None):
 def refuse(client, pane, read):
     request = client.send({"History": {"pane": pane, "read": read}})
     while True:
-        message = client.read().get("Finished", {})
-        if message.get("request") == request:
-            assert "Err" in message["result"], message
-            return message["result"]["Err"]
+        message = client.read()
+        reply = message.get("Reply", {})
+        if reply.get("request") == request and "Err" in reply.get("result", {}):
+            return reply["result"]["Err"]
+        finished = message.get("Finished", {})
+        if finished.get("request") == request:
+            assert "Err" in finished["result"], finished
+            return finished["result"]["Err"]
 
 
 def rows(value):
