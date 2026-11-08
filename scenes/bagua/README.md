@@ -50,3 +50,7 @@ requires fresh qualification under current requirements.
 Seatrial #88 corrects an erroneous paste positive: Ctrl-Q inside a paste is refused by the existing Bagua contract. The fixture separately checks a legal paste while a prefix is pending, explicit refusal of the illegal paste, unchanged application bytes and unchanged window count. It does not relax the input contract or drop coverage.
 
 Seatrial #90 preserves the public admission boundary: an immediate matching Reply::Err terminates an unadmitted request. Finished is checked for admitted work, including later native failure; negative history reads accept their immediate refusal. The fixture never waits for a completion the protocol does not promise.
+
+Seatrial #91 keeps the long copy inside the advertised 256-column, 64-row host canvas. The 38400-byte sample uses 12800 supported base-plus-combining cells in 50 rows, with matching in-page coordinates. Each sample waits for its actual complete visible content before selection; no fixed delay or unloaded-row assumption supplies readiness. The separate CJK wide-cell and hard-newline checks remain.
+
+The valid combining-text sample exposed [Bagua #47](https://github.com/PerishLab/bagua/issues/47): the first RC loses base characters across UTF-8 input chunks. The required mouse case retains this counterexample and remains selected for the complete nine-case qualification after the product fix.
