@@ -72,7 +72,7 @@ def counter(root):
 
 
 def untracked(root):
-    tty.setraw(0)
+    tty.setraw(0, termios.TCSANOW)
     os.write(1, b"\x1b[2J\x1b[HREADY")
     with (root / "plain.bin").open("ab", buffering=0) as output:
         while True:
