@@ -56,8 +56,15 @@ def routing(host):
         assert sum("WINDOW-ONE" in body for body in targets.values()) == 1
         assert sum("WINDOW-TWO" in body for body in targets.values()) == 1
         assert all("RETURN-FIRST" not in body for pane, body in targets.items() if pane != second)
-        view.write(b"\x1b[200~\x11=PASTED\x1b[201~")
-        wait(lambda: "PASTED" in text(client.screen(second)))
+        view.write(b"\x11\x1b[200~=LEGAL-PASTE\x1b[201~")
+        wait(lambda: data(host, "plain.bin").endswith(b"=LEGAL-PASTE"))
+        until(view, "LEGAL-PASTE")
+        assert len(state(client)["windows"]) == 3
+        admitted = data(host, "plain.bin")
+        view.write(b"\x1b[200~\x11=REJECTED-PASTE\x1b[201~")
+        until(view, "payload exceeds")
+        assert data(host, "plain.bin") == admitted
+        assert all("REJECTED-PASTE" not in text(client.screen(pane["id"])) for pane in panes(state(client)))
         assert len(state(client)["windows"]) == 3
         before = text(client.screen(second))
         view.write(b"\x1b[97;1:3u")
