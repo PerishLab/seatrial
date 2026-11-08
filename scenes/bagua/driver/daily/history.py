@@ -89,6 +89,7 @@ def boundary(host, client, target, first):
     refuse(client, pane, invalid)
     view = Terminal(host, ["--no-config", "connect", str(session)], (widthof(first), 25))
     try:
+        until(view, "HISTORY-DONE")
         view.write(b"\x07\x1b[5~")
         until(view, "History")
         frozen = view.screen().splitlines()[:-1]
