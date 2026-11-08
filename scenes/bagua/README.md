@@ -48,3 +48,5 @@ historical pass cannot replace that credential. A changed whole generation
 requires fresh qualification under current requirements.
 
 Seatrial #88 corrects an erroneous paste positive: Ctrl-Q inside a paste is refused by the existing Bagua contract. The fixture separately checks a legal paste while a prefix is pending, explicit refusal of the illegal paste, unchanged application bytes and unchanged window count. It does not relax the input contract or drop coverage.
+
+Seatrial #90 preserves the public admission boundary: an immediate matching Reply::Err terminates an unadmitted request. Finished is checked for admitted work, including later native failure; negative history reads accept their immediate refusal. The fixture never waits for a completion the protocol does not promise.
