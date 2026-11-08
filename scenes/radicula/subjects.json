@@ -1,0 +1,30 @@
+{
+  "schema": "plumb.release.subjects/v1",
+  "product": "seatrial",
+  "cases": [
+    {
+      "id": "radicula-redis",
+      "role": "normative",
+      "subjects": [
+        "radicula"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "plumb"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "redis"
+        }
+      ],
+      "evidence": [
+        "redis.py",
+        "published.py",
+        "prepare.py",
+        "src/main.rs",
+        "src/proxy.rs"
+      ]
+    }
+  ]
+}

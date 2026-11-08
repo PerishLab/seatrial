@@ -1,0 +1,56 @@
+{
+  "schema": "plumb.release.subjects/v1",
+  "product": "seatrial",
+  "cases": [
+    {
+      "id": "lock-joint",
+      "role": "normative",
+      "subjects": [
+        "plumb",
+        "ectropy"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "plumb",
+        "ectropy"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "joint.py",
+        "fixture.py"
+      ]
+    },
+    {
+      "id": "lock-required",
+      "role": "normative",
+      "subjects": [
+        "plumb"
+      ],
+      "fixtures": [
+        "plumb",
+        "runseal",
+        "locus",
+        "santi"
+      ],
+      "preparation": [
+        "plumb",
+        "ectropy"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "required.py",
+        "fixture.py"
+      ]
+    }
+  ]
+}
