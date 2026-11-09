@@ -1,4 +1,4 @@
-case "$1" in workspace|lifecycle|flow|config|entry|history|input|mouse|display|interaction) mode=$1 ;; *) exit 97 ;; esac
+case "$1" in workspace|lifecycle|flow|config|entry|history|input|mouse|display|interaction|exit) mode=$1 ;; *) exit 97 ;; esac
 docker run --rm \
   --name "${SEATRIAL_LANE}-bagua-${mode}" \
   --network "$SEATRIAL_LANE" \

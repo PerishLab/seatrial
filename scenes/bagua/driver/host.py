@@ -42,7 +42,7 @@ class Host:
         return session, pane
 
     def program(self, mode):
-        return {"executable": "/usr/bin/python3", "args": ["-u", str(self.source / "program.py"), mode, str(self.root)], "cwd": str(self.root), "environment": self.env}
+        return {"executable": "/usr/bin/python3", "args": ["-B", "-u", str(self.source / "program.py"), mode, str(self.root)], "cwd": str(self.root), "environment": self.env}
 
     def start(self, client, pane, mode="echo"):
         (self.root / (mode + ".pid")).unlink(missing_ok=True)

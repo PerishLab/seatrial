@@ -56,3 +56,8 @@ group = "bagua"
 id = "bagua-interaction"
 manifest = "cases/interaction.toml"
 group = "bagua"
+
+[[cases]]
+id = "bagua-exit"
+manifest = "cases/exit.toml"
+group = "bagua"

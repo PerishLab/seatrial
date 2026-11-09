@@ -1,7 +1,7 @@
 # Bagua Linux scenes
 
-Nine required cases drive only the verified, formally distributed Bagua CLI,
-public wire v7 and documented configuration. Each gets a separate labelled
+Eleven required cases drive only the verified, formally distributed Bagua CLI,
+public wire v8 and documented configuration. Each gets a separate labelled
 container and private volume. First-party artifacts follow the configured RC
 or stable channel and retain their resolved identities. There is no product
 crate dependency, source-checkout lookup, runtime Cargo build, testing switch,
@@ -10,7 +10,7 @@ credential requirement or interaction with a production workspace.
 | Exact case ID | Assertions |
 | --- | --- |
 | `bagua-workspace` | Original creation, explicit program launch, split/window/focus, controller transfer, observer refusal, failure atomicity, fixed/automatic geometry; actual controlling PTYs check text/keys/paste/application mouse/local selection, detach/reacquire and terminal restoration. |
-| `bagua-lifecycle` | Original disconnect/client SIGKILL persistence; explicit reacquisition; exit status versus EOF; empty-session retention; launch failure; retired identity refusal; stubborn direct-child reap before completion. |
+| `bagua-lifecycle` | Original disconnect/client SIGKILL persistence; explicit reacquisition; exit status versus EOF; automatic exit retirement and last-session removal; launch failure; retired identity refusal; stubborn direct-child reap before completion. |
 | `bagua-flow` | Original exact flood byte/bell counts, fragmented UTF-8, stopped observer/full resynchronization, tiny viewports, digest of 32768 admitted bytes across controller loss, capacity refusal/recovery. |
 | `bagua-config` | Explicit/XDG/HOME discovery, no working-directory search, no-config, literal paths and redacted program values; unknown/syntax/type/range/action refusal; failed whole reload and startup-section refusal; successful combined preference reload preserves identities/control. |
 | `bagua-entry` | Default private endpoint, missing observer and unknown endpoint refusal, same-content/different-inode executable refusal, concurrent ordinary entry creates one exact named workspace, detach persistence and own host/application reclamation; foreground `cd` propagates to split/window, immediate trailing input targets the new pane, deleted cwd refuses creation. |
@@ -42,7 +42,7 @@ the host OS clipboard and never submit a business prompt.
 
 Source Guard and AST/TOML checks establish material readiness only. Formal
 qualification requires the published complete Scene generation, actual formal
-runner/runtime and exact candidate artifact through Wharf, all nine cases and
+runner/runtime and exact candidate artifact through Wharf, all eleven cases and
 successful cleanup. Source merge, a development `--scenes` override and a
 historical pass cannot replace that credential. A changed whole generation
 requires fresh qualification under current requirements.
@@ -84,3 +84,17 @@ mouse, display, cleanup and the original nine required case identities remain.
 Source Guard and local scene overrides do not establish published-artifact
 qualification; Bagua's exact new candidate and complete scene generation must
 run through the formal release path before stable promotion.
+
+
+## Automatic process departure
+
+`bagua-exit` preserves the original ten case identities and adds normal,
+nonzero and signal exits, tail draining before retirement, EOF without exit,
+background retirement with no controller, surviving-pane geometry/focus,
+last-window fallback and final-session client/observer terminal restoration.
+Reentry with the same name creates fresh identities; unrelated applications
+and the host survive. Startup failures remain covered by lifecycle.
+Process outcomes are observed through the reliable public subscription stream,
+including events interleaved with requests, rather than inspecting retired IDs.
+The old v0.3 retention assertion is intentionally replaced by Bagua #63's
+new default contract; no required case is disabled.

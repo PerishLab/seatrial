@@ -6,7 +6,7 @@ import flow
 import lifecycle
 import workspace
 import interaction
-from daily import config, entry, history, input, mouse, display
+from daily import config, entry, history, input, mouse, display, departure
 
 
 def main():
@@ -15,6 +15,7 @@ def main():
     try:
         cases = {"workspace": workspace.run, "lifecycle": lifecycle.run, "flow": flow.run, "interaction": interaction.run}
         cases.update({"config": config.run, "entry": entry.run, "history": history.run, "input": input.run, "mouse": mouse.run, "display": display.run})
+        cases["exit"] = departure.run
         cases[sys.argv[1]](host)
         host.stop()
         emit("owned host shutdown and direct-child reclamation", True)

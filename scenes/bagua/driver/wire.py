@@ -11,6 +11,7 @@ class Wire:
         self.socket.connect(str(path))
         self.bytes = bytearray()
         self.next = 0
+        self.events = []
         self.hello = self.read()["Hello"]
         self.version = self.hello["version"]
         assert self.version == 8, self.hello
@@ -27,6 +28,9 @@ class Wire:
             self.receive()
         value = json.loads(self.bytes[4:size + 4])
         del self.bytes[:size + 4]
+        if "Process" in value:
+            self.events.append(value["Process"])
+            self.events = self.events[-256:]
         return value
 
     def receive(self):

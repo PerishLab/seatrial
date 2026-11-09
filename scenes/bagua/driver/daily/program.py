@@ -100,5 +100,25 @@ def protocol(root):
     hold()
 
 
+def departure(root):
+    pid = os.getpid()
+    settings = json.loads((root / "departure.json").read_text())
+    tty.setraw(0)
+    os.write(1, b"DEPARTURE-READY")
+    if settings.get("eof"):
+        for fd in (0, 1, 2):
+            os.close(fd)
+    else:
+        data = b"TAIL" * 32768
+        offset = 0
+        while offset < len(data):
+            offset += os.write(1, data[offset:])
+    while not (root / ("release-" + str(pid))).exists():
+        time.sleep(0.01)
+    if settings.get("signal"):
+        os.kill(pid, signal.SIGTERM)
+    raise SystemExit(settings.get("code", 0))
+
+
 def modes():
-    return {"history": history, "keyboard": keyboard, "clipboard": clipboard, "counter": counter, "untracked": untracked, "protocol": protocol}
+    return {"departure": departure, "history": history, "keyboard": keyboard, "clipboard": clipboard, "counter": counter, "untracked": untracked, "protocol": protocol}
