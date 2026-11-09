@@ -13,7 +13,7 @@ class Wire:
         self.next = 0
         self.hello = self.read()["Hello"]
         self.version = self.hello["version"]
-        assert self.version == 7, self.hello
+        assert self.version == 8, self.hello
 
     def close(self):
         self.socket.close()

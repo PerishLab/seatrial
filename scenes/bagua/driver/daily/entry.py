@@ -57,6 +57,9 @@ def cwd(host):
         view.write(b"\x11-NOT-ADMITTED")
         until(view, "Inspect")
         assert len(panes(state(client))) == len(panes(before))
+        assert all("NOT-ADMITTED" not in text(client.screen(pane["id"])) for pane in panes(state(client)))
+        view.write(b"printf '\\103\\127\\104_FRESH\\n'\r")
+        until(view, "CWD_FRESH")
         view.detach(b"\x1bq")
         client.workspace({"Acquire": {"session": first["id"], "fixed": None}})
         client.workspace({"Close": {"Session": first["id"]}})
@@ -123,8 +126,11 @@ def racing(host, guest, path):
         def settled():
             for view in views:
                 view.drain()
-            return sum(view.process.poll() == 2 for view in views) == 1 and sum(" control" in view.screen() for view in views) == 1
+            return sum("[t] Take" in view.screen() for view in views) == 1 and sum("bagua w1 control" in view.screen() for view in views) == 1
         wait(settled)
+        loser = next(view for view in views if "[t] Take" in view.screen())
+        loser.write(b"q")
+        finished(loser, 0)
         pid = server(guest, path)
         from wire import Wire
         client = Wire(path)

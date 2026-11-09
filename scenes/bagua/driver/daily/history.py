@@ -98,7 +98,6 @@ def boundary(host, client, target, first):
         assert view.screen().splitlines()[:-1] == frozen
         view.write(b"\x1b[<0;1;1M\x1b[<32;8;1M\x1b[<0;8;1m")
         until(view, "Copied 8 bytes locally")
-        view.write(b"\x1b[F")
         until(view, "EXTRA-ROW")
         view.write(b"\x1b[<64;2;2M")
         until(view, "History")
