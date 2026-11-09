@@ -115,13 +115,11 @@ def refusal(host):
         wait(lambda: len(state(client)["windows"]) == 32)
         wait(lambda: all(pane["state"] == "Running" for pane in panes(state(client))))
         view.write(b"\x11=REFUSED-NO-REPLAY")
-        until(view, "Input paused")
+        until(view, "Create window:")
         assert len(state(client)["windows"]) == 32
         assert all("REFUSED-NO-REPLAY" not in text(client.screen(pane["id"])) for pane in panes(state(client)))
-        view.write(b"\x1b")
-        until(view, "Input resumed")
-        view.write(b"FRESH-AFTER-ACK")
-        wait(lambda: "FRESH-AFTER-ACK" in text(client.screen(active(client))))
+        view.write(b"FRESH-AFTER-REFUSAL")
+        wait(lambda: "FRESH-AFTER-REFUSAL" in text(client.screen(active(client))))
         assert all("REFUSED-NO-REPLAY" not in text(client.screen(pane["id"])) for pane in panes(state(client)))
         until(view, "w32")
         view.write(b"\x1b9")
@@ -130,7 +128,7 @@ def refusal(host):
         view.detach(b"\x1bq")
         client.workspace({"Acquire": {"session": value["id"], "fixed": None}})
         client.workspace({"Close": {"Session": value["id"]}})
-        emit("32 windows keep visible current 1-based index; capacity failure drops unsent input; Escape acknowledges without replay", True)
+        emit("32 windows keep visible current 1-based index; capacity failure drops dependent input; fresh input resumes without Escape or replay", True)
     finally:
         view.close()
 

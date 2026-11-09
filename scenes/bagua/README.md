@@ -56,3 +56,31 @@ Seatrial #91 keeps the long copy inside the advertised 256-column, 64-row host c
 The valid combining-text sample exposed [Bagua #47](https://github.com/PerishLab/bagua/issues/47): the first RC loses base characters across UTF-8 input chunks. The required mouse case retains this counterexample and remains selected for the complete nine-case qualification after the product fix.
 
 Seatrial #97 waits for the actual HISTORY-DONE screen before sending the first history gesture. Entering the outer alternate screen alone does not establish that the client has installed its initial typed screen. The complete 50000-row checks at 80 and 160 columns, frozen-page copying, wheel/live navigation, invalid cursors and shared budgets remain required.
+
+
+## Interaction recovery and takeover
+
+`bagua-interaction` extends the original nine Bagua cases for wire8 consumers.
+It asserts invalid-index/no-op navigation followed by real input, failed layout
+and native exec without fallback delivery, historical release/keyboard copy
+followed immediately by shell commands, and local Copy/prefix Escape behavior.
+Explicit takeover binds the observed owner; success restores the old TTY while
+preserving shell PID/state. Rejection and competing choices preserve the actual
+controller, observers stay read-only, and fixed takeover preserves the canvas.
+
+A case-owned Unix proxy forwards the public framed protocol to the real host.
+It can retain an actual refusal until a partial paste has left the owned TTY
+input queue, or omit a focus reply and retain the subsequent synchronization
+response. The case verifies no Escape-unlocked input or replay, actual fresh
+catalog completion, persistent recovery after a notice expires, bounded client
+exit with restored terminal, and surviving host/application processes. It uses
+no product source, runtime build, test endpoint or product testing mode.
+
+The input case replaces persistent-pause acknowledgement with explicit refusal
+and fresh input without Escape; cold-entry races retain unique host/workspace
+assertions and settle the loser through its chooser. History copying returns
+live without an extra End. Full history capacity, byte budgets, real keyboard,
+mouse, display, cleanup and the original nine required case identities remain.
+Source Guard and local scene overrides do not establish published-artifact
+qualification; Bagua's exact new candidate and complete scene generation must
+run through the formal release path before stable promotion.
