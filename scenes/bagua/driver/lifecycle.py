@@ -34,23 +34,21 @@ def disconnected(host):
 def outcomes(host):
     client = host.wire()
     session, pane = host.new(client)
+    client.ask({"Subscribe": {"target": {"Session": session}, "after": None}})
     pid = host.start(client, pane, "exit")
-    wait(lambda: client.process(pane)["exited"])
-    state = client.process(pane)
+    wait(lambda: all(value["id"] != session for value in sessions(client)))
+    state = next(value for value in reversed(client.events) if value["pane"] == pane and value["exited"])
     assert state["code"] == 23 and state["signal"] is None
     assert not alive(pid)
-    assert str(pane) in next(iter(sessions(client)[-1]["windows"].values()))["panes"]
-    client.workspace({"Close": {"Session": session}})
+    client.ask({"Inspect": pane}, "missing")
     session, pane = host.new(client)
     pid = host.start(client, pane, "eof")
     wait(lambda: client.process(pane)["eof"])
     assert not client.process(pane)["exited"] and alive(pid)
     client.workspace({"Close": {"Pane": pane}})
     assert not alive(pid)
-    state = sessions(client)[-1]
-    assert state["id"] == session and state["windows"] == {}
-    client.workspace({"Close": {"Session": session}})
-    emit("exit retains pane; EOF differs from exit; last-pane close retains empty session", True)
+    assert all(value["id"] != session for value in sessions(client))
+    emit("exit retires pane/session after actual reap; EOF alone preserves live process", True)
 
 
 def retirement(host):
@@ -61,7 +59,7 @@ def retirement(host):
     client.workspace({"Close": {"Pane": pane}})
     assert not alive(pid)
     client.ask({"Inspect": pane}, "missing")
-    client.workspace({"Close": {"Session": session}})
+    assert all(value["id"] != session for value in sessions(client))
     session, pane = host.new(client)
     program = host.program("echo")
     program["executable"] = "/definitely-missing-bagua-scene-program"

@@ -203,3 +203,8 @@ group = "bagua"
 id = "bagua-interaction"
 manifest = "bagua/cases/interaction.toml"
 group = "bagua"
+
+[[cases]]
+id = "bagua-exit"
+manifest = "bagua/cases/exit.toml"
+group = "bagua"

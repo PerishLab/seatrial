@@ -295,6 +295,36 @@
         "driver/daily/program.py",
         "case.run.sh"
       ]
+    },
+    {
+      "id": "bagua-exit",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "bagua"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "driver/daily/departure.py",
+        "driver/daily/program.py",
+        "driver/daily/common.py",
+        "driver/daily/entry.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/program.py",
+        "driver/main.py",
+        "case.run.sh"
+      ]
     }
   ]
 }

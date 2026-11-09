@@ -131,6 +131,7 @@ fn bagua() {
         "bagua-mouse",
         "bagua-display",
         "bagua-interaction",
+        "bagua-exit",
     ];
     let whole = select(root, &[]).unwrap();
     let portable = select(&root.join("bagua"), &[]).unwrap();
