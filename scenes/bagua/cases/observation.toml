@@ -1,0 +1,4 @@
+products = ["bagua", "locus"]
+image = "bagua"
+timeout = 240
+command = ["sh", "-eu", "observation/run.sh"]

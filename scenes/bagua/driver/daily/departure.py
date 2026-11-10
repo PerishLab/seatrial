@@ -80,8 +80,8 @@ def layout(host):
     return session, survivor, owner
 
 
-def interactive(host, survivor):
-    settings = config(host, profile())
+def interactive(host, survivor, settings=None):
+    settings = settings or config(host, profile())
     args = [*settings, "enter", "departure", *shell(host)]
     view = Terminal(host, args)
     client = host.wire()
@@ -149,8 +149,8 @@ def run(host):
     metadata(host)
 
 
-def metadata(host):
-    settings = config(host, profile() + '\n[header]\nenabled=true\ncomponents=["pane","command","cwd"]\n', "metadata.toml")
+def metadata(host, settings=None):
+    settings = settings or config(host, profile() + '\n[header]\nenabled=true\ncomponents=["pane","command","cwd"]\n', "metadata.toml")
     (host.root / "departure.json").write_text(json.dumps({"code": 0}))
     (host.root / "departure.pid").unlink(missing_ok=True)
     proxy = Proxy(host, "metadata")

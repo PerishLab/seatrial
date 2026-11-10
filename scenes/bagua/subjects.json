@@ -326,6 +326,42 @@
         "case.run.sh",
         "driver/interaction/proxy.py"
       ]
+    },
+    {
+      "id": "bagua-observation",
+      "role": "normative",
+      "subjects": [
+        "bagua"
+      ],
+      "fixtures": [
+        "locus"
+      ],
+      "preparation": [
+        "bagua",
+        "locus"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "locus-api"
+        }
+      ],
+      "evidence": [
+        "observation/main.py",
+        "observation/service.py",
+        "observation/flow.py",
+        "observation/run.sh",
+        "driver/daily/departure.py",
+        "driver/daily/common.py",
+        "driver/daily/entry.py",
+        "driver/host.py",
+        "driver/wire.py",
+        "driver/program.py",
+        "driver/daily/program.py",
+        "driver/terminal/__init__.py",
+        "driver/terminal/view.py",
+        "driver/interaction/proxy.py"
+      ]
     }
   ]
 }
