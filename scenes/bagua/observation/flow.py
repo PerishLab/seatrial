@@ -150,16 +150,19 @@ def outage(host, service, configured):
         result = subprocess.run([host.binary, *configured, "--json", "capabilities"], env=host.env, capture_output=True, timeout=15)
         assert result.returncode == 0
         json.loads(result.stdout)
-        notes = [json.loads(line) for line in result.stderr.splitlines()]
-        assert notes and all(note["diagnostic"]["source"] == "bagua.locus" for note in notes)
+        assert result.stderr == b""
         samples.append(result.stdout)
+    cold = subprocess.run([host.binary, *configured, "--json", "capabilities"], env={**host.env, "XDG_STATE_HOME": str(host.root / "unregistered-state")}, capture_output=True, timeout=15)
+    notes = [json.loads(line) for line in cold.stderr.splitlines()]
+    assert cold.returncode == 0 and cold.stdout == samples[0]
+    assert notes and all(note["diagnostic"]["source"] == "bagua.locus" for note in notes)
     spool = host.home / ".local/state/bagua/locus"
     size = sum(path.stat().st_size for path in spool.rglob("*") if path.is_file())
     assert 0 < size < 32 * 1024 * 1024
     assert len(set(samples)) == 1 and host.process.poll() is None
     service.start()
     atoms = service.until(lambda: restored(service, before + 4))
-    emit("previously registered persistent spool drains after owned service restart; business calls stay successful", {"observed_spool_bytes": size, "recovered_finishes": len(payloads(atoms, "cli.finish")) - before})
+    emit("registered spool drains after owned service restart; fresh unregistered spool diagnoses without changing business output", {"observed_spool_bytes": size, "recovered_finishes": len(payloads(atoms, "cli.finish")) - before, "unregistered_diagnostics": len(notes)})
 
 
 def restored(service, count):

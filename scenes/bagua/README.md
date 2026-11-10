@@ -136,7 +136,12 @@ reported for review, without inventing a cross-machine latency guarantee.
 The test stops only its owned Locus process after spool registration, runs more
 successful Bagua invocations, restarts the same isolated service/store and waits
 for the retained registry to drain their real records. Engine diagnostics remain
-bounded codes. The observed workload's spool size is recorded; this is not a
+bounded codes. An already registered spool stays quiet while offline; a separate
+fresh state home exercises the unregistered-spool diagnostic without changing
+business output. Reads allow 75 seconds for Locus's existing 60-second active
+segment sealing and drain cycle; the case budget covers the separate lifecycle
+barriers without rewriting spool files or adding product retention controls.
+The observed workload's spool size is recorded; this is not a
 proof of every Locus resource ceiling. Its isolated service declares one day of
 retention to expose the public retained-from header and an empty older query.
 No shared service, user host, release channel or production retention changes.

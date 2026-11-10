@@ -42,7 +42,7 @@ class Service:
         return atoms, headers
 
     def until(self, observe):
-        end = time.monotonic() + 25
+        end = time.monotonic() + 75
         last = None
         while time.monotonic() < end:
             try:
