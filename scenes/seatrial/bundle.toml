@@ -1,0 +1,13 @@
+format = 2
+
+[[groups]]
+id = "seatrial"
+root = "."
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "seatrial-placement"
+manifest = "cases/placement.toml"
+group = "seatrial"

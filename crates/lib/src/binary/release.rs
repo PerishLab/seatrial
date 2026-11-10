@@ -2,6 +2,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 mod archive;
+mod debian;
+mod placement;
+
+pub use placement::{Medium, Placement};
 
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -23,6 +27,7 @@ pub struct Product<'a> {
     pub channel: &'a str,
     pub pointer: String,
     pub additional: &'a [String],
+    pub placement: Option<&'a Placement>,
 }
 
 pub async fn fetch(
@@ -67,16 +72,34 @@ pub async fn fetch(
                     .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
         })
         .ok_or("seal names no canonical Git commit")?;
-    let artifact = &seal["artifacts"]["linux-x64"];
+    let medium = product.placement.map_or("linux-x64", Placement::medium);
+    let artifact = &seal["artifacts"][medium];
     let (Some(sha), Some(url)) = (artifact["sha256"].as_str(), artifact["url"].as_str()) else {
-        return Err("seal names no linux-x64 artifact".into());
+        return Err(format!("seal names no {medium} artifact"));
     };
-    let archive = probe::fetch(lane, url).await?;
+    let archive = match product.placement {
+        None => probe::fetch(lane, url).await?,
+        Some(_) => {
+            probe::Download {
+                lane,
+                url,
+                limit: 64 * 1024 * 1024,
+            }
+            .run()
+            .await?
+        }
+    };
     check(&archive, sha, "archive")?;
-    let files = archive::unpack(&archive, &names)?;
+    let files = match product.placement {
+        None => archive::unpack(&archive, &names)?,
+        Some(placement) => debian::unpack(&archive, &placement.paths)?,
+    };
     let mut executables = BTreeMap::new();
     for (name, bytes) in files {
-        let path = if name == product.name {
+        let primary = product
+            .placement
+            .map_or(product.name, |layout| layout.entry.as_str());
+        let path = if name == primary {
             destination.to_owned()
         } else {
             destination
@@ -119,10 +142,16 @@ fn names(product: &Product<'_>) -> Result<BTreeSet<String>, String> {
         return Err("too many additional executables".into());
     }
     let mut names = BTreeSet::new();
-    for name in std::iter::once(product.name).chain(product.additional.iter().map(String::as_str)) {
+    let primary = product
+        .placement
+        .map_or(product.name, |layout| layout.entry.as_str());
+    for name in std::iter::once(primary).chain(product.additional.iter().map(String::as_str)) {
         if !valid(name) || !names.insert(name.to_owned()) {
             return Err(format!("invalid or repeated executable name {name}"));
         }
+    }
+    if let Some(placement) = product.placement {
+        placement.check(&names)?;
     }
     Ok(names)
 }

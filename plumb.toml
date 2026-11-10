@@ -38,3 +38,12 @@ ns = "seatrial"
 authority = "https://releases.seatrial.perish.uk"
 binaries = ["seatrial"]
 targets = ["x86_64-unknown-linux-gnu"]
+
+[windtun]
+cases = ["seatrial-placement"]
+image = "ghcr.io/perishlab/images:stable"
+
+[windtun.scenes]
+authority = "https://depot.seatrial.perish.uk"
+product = "seatrial"
+channel = "stable"

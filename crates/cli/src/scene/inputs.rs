@@ -43,6 +43,7 @@ pub async fn prepare(
                 channel: &channel.channel,
                 pointer,
                 additional: &channel.binaries,
+                placement: channel.placement.as_ref(),
             },
             &path,
         )
@@ -58,6 +59,7 @@ pub async fn prepare(
             commit: release.commit.clone(),
             seal: release.seal.clone(),
             archive: release.archive.clone(),
+            placement: channel.placement.clone(),
         });
         env.push((
             format!("SEATRIAL_BINARY_{}", name.to_ascii_uppercase()),

@@ -13,6 +13,8 @@ pub struct Artifact {
     pub commit: String,
     pub seal: String,
     pub archive: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placement: Option<seatrial_lib::binary::Placement>,
 }
 
 #[derive(Serialize)]

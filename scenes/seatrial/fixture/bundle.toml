@@ -1,0 +1,13 @@
+format = 2
+
+[[groups]]
+id = "fixture"
+root = "."
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "placement-fixture"
+manifest = "case.toml"
+group = "fixture"

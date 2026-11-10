@@ -17,6 +17,7 @@ pub struct Channel {
     pub image: Option<String>,
     #[serde(default)]
     pub binaries: Vec<String>,
+    pub placement: Option<seatrial_lib::binary::Placement>,
 }
 
 pub fn read(path: &Path) -> Result<Pins, String> {

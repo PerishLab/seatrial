@@ -1,0 +1,1 @@
+python3 -B "$SEATRIAL_SCENE/payload.py" "$SEATRIAL_BINARY_LOCUS"

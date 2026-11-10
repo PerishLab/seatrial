@@ -1,0 +1,3 @@
+products = ["locus"]
+timeout = 30
+command = ["sh", "-eu", "case.run.sh"]
