@@ -323,7 +323,8 @@
         "driver/terminal/view.py",
         "driver/program.py",
         "driver/main.py",
-        "case.run.sh"
+        "case.run.sh",
+        "driver/interaction/proxy.py"
       ]
     }
   ]
