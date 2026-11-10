@@ -126,7 +126,7 @@ class Proxy:
         for value, raw in packets(buffer, limit):
             if peer is downstream:
                 self.request(value)
-                if self.mode == "metadata" and self.held.is_set() and not self.released.is_set():
+                if self.mode == "metadata" and self.held.is_set():
                     self.requests.append(raw)
                 else:
                     upstream.sendall(raw)
