@@ -1,6 +1,6 @@
 # Bagua Linux scenes
 
-Eleven required cases drive only the verified, formally distributed Bagua CLI,
+Twelve required cases drive only the verified, formally distributed Bagua CLI,
 public wire v8 and documented configuration. Each gets a separate labelled
 container and private volume. First-party artifacts follow the configured RC
 or stable channel and retain their resolved identities. There is no product
@@ -18,6 +18,14 @@ credential requirement or interaction with a production workspace.
 | `bagua-input` | Ordinary hosted applications observe actual query/DA replies and Enter versus ShiftEnter bytes for flags 1/5/7; stack counts, set/clear/unknown masks, primary/alternate isolation, RIS and malformed requests; prefix literal, releases, legal paste clearing prefix and illegal control-character paste refusal; batched split/window/Alt-index/click/close routing; 32-window capacity failure drops unsent text and acknowledgement never replays it. |
 | `bagua-mouse` | Local versus explicit OSC52, drag-release versus manual copy and reload limit refusal; complete base64/ST including 38400-byte Unicode soft-wrapped selection, hard newline and wide-cell boundaries; hosted application OSC is blocked; actual divider drag changes PTY widths, observer cannot resize, click focuses before text and invalid minimum preserves usable panes. |
 | `bagua-display` | Actual header/separator content-height reservation, observed foreground cwd and active indexed blue, observer cannot reserve rows, atomic invalid/valid decor reload, prefix/help/error priority, tiny reservation failure preserves ordinary input; a delayed reader sees final counter rows with bounded total traffic and idle status-row updates; Shanghai minute display. |
+| `bagua-interaction` | Known refusal and local mode recovery, exact-shell takeover and observe/cancel choices, racing choices, failed admission preserves host/apps, explicit catalog recovery and bounded unknown exit without replay. |
+| `bagua-exit` | Normal/nonzero/signal exit and EOF-before-exit, actual reaping and pane/window/session collapse, controller/observer TTY restoration, and immediate metadata Missing without Finished. |
+| `bagua-observation` | Formal Locus service fixture, actual exit/request/TTY evidence, private payload exclusion, client crash, registered/cold-buffer outage behavior, eventual API consumption and retention boundaries. |
+
+The workspace driver identifies a new observer from actual membership added after
+its pre-connect catalog. A session can be observed between Create and Acquire;
+that earlier controller snapshot cannot identify later connection membership.
+The unique new observer and its subsequent control acquisition remain asserted.
 
 The ordinary Python programs record their own process identities and received
 bytes inside the case volume. All direct children must be gone after successful
@@ -42,7 +50,7 @@ the host OS clipboard and never submit a business prompt.
 
 Source Guard and AST/TOML checks establish material readiness only. Formal
 qualification requires the published complete Scene generation, actual formal
-runner/runtime and exact candidate artifact through Wharf, all eleven cases and
+runner/runtime and exact candidate artifact through Wharf, all twelve cases and
 successful cleanup. Source merge, a development `--scenes` override and a
 historical pass cannot replace that credential. A changed whole generation
 requires fresh qualification under current requirements.
