@@ -12,6 +12,8 @@ plumb = { workspace = true, features = ["depot"] }
 serde.workspace = true
 ureq.workspace = true
 flate2.workspace = true
+ar.workspace = true
+lzma-rust2.workspace = true
 getrandom.workspace = true
 libc.workspace = true
 serde_json.workspace = true

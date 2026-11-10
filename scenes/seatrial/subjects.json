@@ -1,0 +1,36 @@
+{
+  "schema": "plumb.release.subjects/v1",
+  "product": "seatrial",
+  "cases": [
+    {
+      "id": "seatrial-placement",
+      "role": "normative",
+      "subjects": [
+        "seatrial"
+      ],
+      "fixtures": [
+        "locus"
+      ],
+      "preparation": [
+        "seatrial"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "main.py",
+        "reference.py",
+        "trial.py",
+        "case.run.sh",
+        "cases/placement.toml",
+        "fixture/bundle.toml",
+        "fixture/case.toml",
+        "fixture/payload.py",
+        "fixture/case.run.sh"
+      ]
+    }
+  ]
+}

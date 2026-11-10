@@ -29,17 +29,79 @@ pub async fn start(lane: &Lane, image: &str) -> Result<(), String> {
 pub async fn fetch(lane: &Lane, url: &str) -> Result<Vec<u8>, String> {
     let host = lane.host(NAME);
     let args = words(&["exec", &host, "curl", "-fsSL", "--max-time", "300", url]);
-    Request {
-        args: &args,
-        stop: lane.stop.clone(),
-    }
-    .run()
+    download(
+        Request {
+            args: &args,
+            stop: lane.stop.clone(),
+        },
+        url,
+    )
     .await
-    .and_then(|output| match output.ok {
-        true => Ok(output.out),
-        false => Err(output.err),
-    })
-    .map_err(|error| format!("fetch {url}: {error}"))
+}
+
+pub struct Download<'a> {
+    pub lane: &'a Lane,
+    pub url: &'a str,
+    pub limit: u64,
+}
+
+impl Download<'_> {
+    pub async fn run(&self) -> Result<Vec<u8>, String> {
+        let lane = self.lane;
+        let url = self.url;
+        let limit = self.limit;
+        if limit == 0 {
+            return Err("artifact download needs a nonzero byte budget".into());
+        }
+        let host = lane.host(NAME);
+        let version = Request {
+            args: &words(&["exec", &host, "curl", "--version"]),
+            stop: lane.stop.clone(),
+        }
+        .run()
+        .await?;
+        let text = version.text();
+        let mut fields = text.split_whitespace();
+        let name = fields.next();
+        let mut parts = fields.next().unwrap_or("").split('.');
+        let current = parts
+            .next()
+            .and_then(|part| part.parse::<u64>().ok())
+            .zip(parts.next().and_then(|part| part.parse::<u64>().ok()));
+        if name != Some("curl") || !version.ok || current.is_none_or(|value| value < (8, 4)) {
+            return Err("bounded artifact download requires curl 8.4 or newer".into());
+        }
+        let args = words(&[
+            "exec",
+            &host,
+            "curl",
+            "-fsSL",
+            "--max-time",
+            "300",
+            "--max-filesize",
+            &limit.to_string(),
+            url,
+        ]);
+        download(
+            Request {
+                args: &args,
+                stop: lane.stop.clone(),
+            },
+            url,
+        )
+        .await
+    }
+}
+
+async fn download(request: Request<'_>, url: &str) -> Result<Vec<u8>, String> {
+    request
+        .run()
+        .await
+        .and_then(|output| match output.ok {
+            true => Ok(output.out),
+            false => Err(output.err),
+        })
+        .map_err(|error| format!("fetch {url}: {error}"))
 }
 
 pub async fn send(lane: &Lane, ask: Ask<'_>) -> Result<Reply, String> {

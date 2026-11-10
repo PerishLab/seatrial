@@ -21,6 +21,17 @@ Seatrial is the domain's black-box test repository (PerishLab/.github#127).
   and digests it actually ran. Third-party images are pinned by exact tag.
   The pointer's seal and every downloaded artifact are checked against their
   digests before anything runs.
+  A product's optional `[product.placement]` selects `artifact = "linux-x64-deb"`,
+  its primary executable `entry`, and an exact `paths` map from every requested
+  executable name to its canonical package-relative path. Without placement the
+  existing Linux tar and product-named primary remain. Debian 2.0 packages admit
+  exactly one control and data member using gzip or XZ; no package script runs.
+  Package and decoded payload each cap at 64 MiB, selected files at 32 MiB each,
+  and per-block LZMA2 decoder memory at 64 MiB. Selected files must be distinct regular
+  executable entries; missing, duplicate, noncanonical and unsupported inputs
+  refuse. The run records the selected placement beside the seal/archive identity.
+  Debian downloads require probe curl 8.4 or newer and enforce the package
+  ceiling during transfer as well as before decoding.
 - Scenes resolve independently from `[scenes]` through Depot. The channel
   pointer must equal its verified version standing; no checkout fallback exists.
   `--scenes` is an explicit local development override. Reports bind the running

@@ -50,3 +50,8 @@ authority = "https://releases.ectropy.perish.uk"
 channel = "rc"
 authority = "https://releases.concord.perish.uk"
 image = "ghcr.io/perishlab/images:stable"
+
+[seatrial]
+channel = "rc"
+authority = "https://releases.seatrial.perish.uk"
+image = "ghcr.io/perishlab/images:stable"

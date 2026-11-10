@@ -1,0 +1,4 @@
+products = ["seatrial"]
+image = "seatrial"
+timeout = 600
+command = ["sh", "-eu", "case.run.sh"]
