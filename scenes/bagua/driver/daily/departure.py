@@ -1,11 +1,13 @@
 import json
 import signal
+from types import SimpleNamespace
 
 from host import alive, emit, sessions
 from terminal import Terminal
 from wire import created, geometry, text, wait
 from workspace import join
-from .common import active, config, panes, profile, state, until
+from interaction.proxy import Proxy
+from .common import active, config, launch, panes, profile, state, until
 from .entry import describe, finished, shell
 
 
@@ -144,3 +146,31 @@ def run(host):
     interactive(host, survivor)
     owner.workspace({"Close": {"Session": session}})
     assert not alive(survivor)
+    metadata(host)
+
+
+def metadata(host):
+    settings = config(host, profile() + '\n[header]\nenabled=true\ncomponents=["pane","command","cwd"]\n', "metadata.toml")
+    (host.root / "departure.json").write_text(json.dumps({"code": 0}))
+    (host.root / "departure.pid").unlink(missing_ok=True)
+    proxy = Proxy(host, "metadata")
+    guest = SimpleNamespace(binary=host.binary, path=proxy.path, env=host.env)
+    view = None
+    monitor = host.wire()
+    try:
+        view = Terminal.launch(guest, launch(host, "departure", settings), (160, 40))
+        wait(lambda: (view.drain(), proxy.held.is_set())[1])
+        pid = wait(lambda: host.pid("departure"))
+        host.children.append(pid)
+        release(host, pid)
+        wait(lambda: not sessions(monitor))
+        assert not alive(pid)
+        proxy.resume()
+        finished(view, 0)
+        assert proxy.refused.is_set()
+        assert host.process.poll() is None and not sessions(monitor)
+        emit("header metadata Describe receives actual immediate Missing without Finished after retirement; client exits zero with restored TTY", {"request": proxy.target, "pid": pid})
+    finally:
+        if view is not None:
+            view.close()
+        proxy.close()

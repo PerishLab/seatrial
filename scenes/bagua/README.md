@@ -98,3 +98,13 @@ Process outcomes are observed through the reliable public subscription stream,
 including events interleaved with requests, rather than inspecting retired IDs.
 The old v0.3 retention assertion is intentionally replaced by Bagua #63's
 new default contract; no required case is disabled.
+
+
+Bagua #66 adds the header/metadata retirement race to `bagua-exit`. The proxy
+retains the first real Describe and subsequent requests in their original order,
+while an ordinary fixture exits through its own file gate. After the real host
+retires the session, the original request is forwarded unchanged. The real
+Missing refusal ends this unadmitted request without a Finished. The client must
+exit zero and restore its TTY; an old v0.4.0 client instead retains the metadata
+job and reports a detach timeout. No response, completion or product state is
+fabricated. Existing exit, admission, input and cleanup coverage remains.

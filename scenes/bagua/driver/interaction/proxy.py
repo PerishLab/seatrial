@@ -32,6 +32,8 @@ class Proxy:
         self.target = None
         self.sync = None
         self.pending = []
+        self.requests = []
+        self.refused = threading.Event()
         self.peers = []
         self.fault = None
         self.observed = threading.Event()
@@ -42,7 +44,14 @@ class Proxy:
         self.thread.start()
 
     def request(self, value):
-        command = value["command"].get("Workspace") if isinstance(value["command"], dict) else None
+        command = value["command"]
+        if self.mode == "metadata":
+            if self.target is None and isinstance(command, dict) and "Describe" in command:
+                self.target = value["id"]
+                self.observed.set()
+                self.held.set()
+            return
+        command = command.get("Workspace") if isinstance(command, dict) else None
         target = "Split" if self.mode == "refuse" else "Focus"
         if self.target is None and isinstance(command, dict) and target in command:
             self.target = value["id"]
@@ -54,6 +63,9 @@ class Proxy:
     def response(self, value, raw):
         reply = value.get("Reply", {})
         finished = value.get("Finished", {})
+        if self.mode == "metadata" and self.target is not None and reply.get("request") == self.target:
+            assert reply["result"] == {"Err": {"Workspace": "Missing"}}, value
+            self.refused.set()
         if self.target is not None and self.mode == "refuse" and reply.get("request") == self.target:
             assert "Err" in reply["result"], value
             self.pending.append(raw)
@@ -81,6 +93,8 @@ class Proxy:
             downstream.settimeout(8)
             self.forward(downstream, upstream)
         except Exception as error:
+            if self.mode == "metadata" and isinstance(error, (ConnectionResetError, BrokenPipeError)) and self.refused.is_set():
+                return
             if not self.stopped.is_set():
                 self.fault = error
         finally:
@@ -90,6 +104,10 @@ class Proxy:
     def forward(self, downstream, upstream):
         buffers = {downstream: bytearray(), upstream: bytearray()}
         while not self.stopped.is_set():
+            if self.released.is_set() and self.requests:
+                for raw in self.requests:
+                    upstream.sendall(raw)
+                self.requests.clear()
             if self.released.is_set() and self.pending:
                 for raw in self.pending:
                     downstream.sendall(raw)
@@ -108,7 +126,10 @@ class Proxy:
         for value, raw in packets(buffer, limit):
             if peer is downstream:
                 self.request(value)
-                upstream.sendall(raw)
+                if self.mode == "metadata" and self.held.is_set() and not self.released.is_set():
+                    self.requests.append(raw)
+                else:
+                    upstream.sendall(raw)
             elif self.response(value, raw):
                 downstream.sendall(raw)
 
