@@ -108,3 +108,42 @@ Missing refusal ends this unadmitted request without a Finished. The client must
 exit zero and restore its TTY; an old v0.4.0 client instead retains the metadata
 job and reports a detach timeout. No response, completion or product state is
 fabricated. Existing exit, admission, input and cleanup coverage remains.
+
+## Observation service combination
+
+`bagua-observation` adds one required Bagua subject with the formally prepared
+Locus service as a fixture. The original eleven cases and defaults remain. The
+new case uses the target's one declared execution image, both verified published
+executables, a fresh case volume and no published host port. A canonical Locus
+component hostname aliases its in-container loopback listener on port 8080.
+The drivers ship inside this material group; the hosted application is the image's ordinary interactive shell.
+
+The case runs actual all-pane/window exits, observer/controller TTY restoration
+and the existing public-wire metadata race, with observation explicitly enabled.
+It checks the real immediate Describe refusal has no fabricated Finished. Native
+reaping, resource release and pane retirement remain separate ordered facts.
+Two independent connection scopes are not joined by raw IDs or timestamps.
+A killed owned client has no invented finish/restoration while host and application
+survive; cleanup explicitly acquires and closes that remaining session afterward.
+
+The public API must return the Bagua producer's actual versioned records. Program
+arguments/environment/cwd, workspace names and real TTY input carry distinct
+canaries that must stay outside the returned Atom stream. Public commands in the hosted shell confirm its actual argument, environment and
+working-directory values and the absence of newly injected LOCUS_PARENT.
+Off/on capability stdout and exit are compared; measured startup timings are
+reported for review, without inventing a cross-machine latency guarantee.
+
+The test stops only its owned Locus process after spool registration, runs more
+successful Bagua invocations, restarts the same isolated service/store and waits
+for the retained registry to drain their real records. Engine diagnostics remain
+bounded codes. The observed workload's spool size is recorded; this is not a
+proof of every Locus resource ceiling. Its isolated service declares one day of
+retention to expose the public retained-from header and an empty older query.
+No shared service, user host, release channel or production retention changes.
+Missing finishes are gaps, not evidence of successful restoration or a root cause.
+
+Source checks and an explicit local material run do not establish qualification.
+The complete formal group must be published through Depot and consumed in an exact
+Bagua candidate run with all twelve required cases, full service identities and
+cleanup, followed by independent current qualification and stable association.
+Bagua #70 owns release/install/query handoff; human #33 remains independent.

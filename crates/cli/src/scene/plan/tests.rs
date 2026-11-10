@@ -132,6 +132,7 @@ fn bagua() {
         "bagua-display",
         "bagua-interaction",
         "bagua-exit",
+        "bagua-observation",
     ];
     let whole = select(root, &[]).unwrap();
     let portable = select(&root.join("bagua"), &[]).unwrap();
@@ -153,7 +154,12 @@ fn bagua() {
     assert!(portable[0].control.is_none());
     for scene in &suite.scenes {
         assert!(scene.manifest.default);
-        assert_eq!(scene.manifest.products, ["bagua"]);
+        let products: &[&str] = if scene.name == "bagua-observation" {
+            &["bagua", "locus"]
+        } else {
+            &["bagua"]
+        };
+        assert_eq!(scene.manifest.products, products);
         assert_eq!(scene.manifest.image.as_deref(), Some("bagua"));
     }
 }
@@ -183,5 +189,39 @@ fn subjects() {
     assert_eq!(diagnostic.role, Role::Diagnostic);
     assert_eq!(diagnostic.subjects, ["seatrial"]);
     assert_eq!(subjects.coverage("seatrial").unwrap().len(), 1);
+    assert!(subjects.coverage("locus").unwrap().is_empty());
+}
+
+#[test]
+fn observation() {
+    use plumb::semantics::subjects::{Role, Subjects};
+    let root = Path::new("../../scenes/bagua");
+    let suites = select(root, &[]).unwrap();
+    let suite = &suites[0];
+    let names: Vec<_> = suite
+        .scenes
+        .iter()
+        .map(|scene| scene.name.clone())
+        .collect();
+    assert_eq!(names.len(), 12);
+    let subjects = Subjects::parse(&std::fs::read(root.join("subjects.json")).unwrap()).unwrap();
+    let mut paths = std::collections::BTreeSet::new();
+    for case in &subjects.cases {
+        for path in &case.evidence {
+            assert!(root.join(path).is_file(), "missing evidence: {path}");
+            paths.insert(path.clone());
+        }
+    }
+    let paths: Vec<_> = paths.into_iter().collect();
+    subjects.bind(&names, &paths).unwrap();
+    let case = subjects
+        .cases
+        .iter()
+        .find(|case| case.id == "bagua-observation")
+        .unwrap();
+    assert_eq!(case.role, Role::Normative);
+    assert_eq!(case.subjects, ["bagua"]);
+    assert_eq!(case.fixtures, ["locus"]);
+    assert_eq!(subjects.coverage("bagua").unwrap().len(), 12);
     assert!(subjects.coverage("locus").unwrap().is_empty());
 }
