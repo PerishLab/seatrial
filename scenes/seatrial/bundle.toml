@@ -11,3 +11,8 @@ profile = "host/v1"
 id = "seatrial-placement"
 manifest = "cases/placement.toml"
 group = "seatrial"
+
+[[cases]]
+id = "seatrial-service"
+manifest = "cases/service.toml"
+group = "seatrial"

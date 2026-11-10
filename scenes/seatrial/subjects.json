@@ -31,6 +31,30 @@
         "fixture/payload.py",
         "fixture/case.run.sh"
       ]
+    },
+    {
+      "id": "seatrial-service",
+      "role": "diagnostic",
+      "subjects": [
+        "seatrial"
+      ],
+      "fixtures": [
+        "locus"
+      ],
+      "preparation": [
+        "locus"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "service/main.py",
+        "service/run.sh",
+        "cases/service.toml"
+      ]
     }
   ]
 }
