@@ -13,3 +13,12 @@ records its actual source, version, seal, archive and executable digest. This ca
 does not qualify Locus service semantics or Bagua observation. Those remain with
 the corresponding service cases and installed canaries. No maintainer scripts,
 source checkout, runtime Cargo build or shared service is used.
+
+`seatrial-service` is an optional diagnostic for the installed runner's Debian
+placement. It starts the prepared formal Locus executable in a labelled lane
+container, probes its loopback-only health through the canonical component name,
+checks its version, stops it with SIGINT and observes exit zero before removal.
+The case uses only its own volume and publishes no host port. Its diagnostic role
+adds no normative subject coverage. An explicit local `--scenes` invocation is
+installed-consumer evidence and never substitutes for formal Scene qualification
+or the Bagua/Locus service-combination contract.

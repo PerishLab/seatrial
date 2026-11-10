@@ -157,3 +157,31 @@ fn bagua() {
         assert_eq!(scene.manifest.image.as_deref(), Some("bagua"));
     }
 }
+
+#[test]
+fn subjects() {
+    use plumb::semantics::subjects::{Role, Subjects};
+    let root = Path::new("../../scenes/seatrial");
+    let names = vec!["seatrial-placement".into(), "seatrial-service".into()];
+    let suites = select(root, &names).unwrap();
+    assert_eq!(suites.len(), 1);
+    assert_eq!(suites[0].scenes.len(), 2);
+    let subjects = Subjects::parse(&std::fs::read(root.join("subjects.json")).unwrap()).unwrap();
+    let mut paths = Vec::new();
+    for case in &subjects.cases {
+        for path in &case.evidence {
+            assert!(root.join(path).is_file(), "{path}");
+            paths.push(path.clone());
+        }
+    }
+    subjects.bind(&names, &paths).unwrap();
+    let diagnostic = subjects
+        .cases
+        .iter()
+        .find(|case| case.id == "seatrial-service")
+        .unwrap();
+    assert_eq!(diagnostic.role, Role::Diagnostic);
+    assert_eq!(diagnostic.subjects, ["seatrial"]);
+    assert_eq!(subjects.coverage("seatrial").unwrap().len(), 1);
+    assert!(subjects.coverage("locus").unwrap().is_empty());
+}

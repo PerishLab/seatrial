@@ -1,0 +1,5 @@
+products = ["locus"]
+image = "locus"
+timeout = 90
+default = false
+command = ["sh", "-eu", "service/run.sh"]
