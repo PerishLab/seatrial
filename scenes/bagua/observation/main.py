@@ -5,7 +5,7 @@ import sys
 import time
 from types import SimpleNamespace
 
-sys.path.insert(0, "/scene/driver")
+sys.path.append("/scene/driver")
 from host import Host, emit
 from service import Service, payloads, trace
 import flow
