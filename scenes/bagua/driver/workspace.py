@@ -88,8 +88,11 @@ def interactive(host):
             time.sleep(0.03)
             view.drain()
         view.write(b"\x07w\x07\t")
+        before = sessions(monitor)[-1]
+        joined = {int(key) for key in before["clients"]}
+        assert before["control"]["owner"] in joined
         observer = Terminal(host, ["connect", str(session)], (12, 4))
-        peers = wait(lambda: [int(key) for key in sessions(monitor)[-1]["clients"] if int(key) not in (monitor.hello["client"], state["control"]["owner"])])
+        peers = wait(lambda: [int(key) for key in sessions(monitor)[-1]["clients"] if int(key) not in joined])
         assert len(peers) == 1
         peer = peers[0]
         observer.write(b"observer-must-not-write")
