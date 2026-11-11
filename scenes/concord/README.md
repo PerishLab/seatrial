@@ -27,6 +27,25 @@ not release inclusion or a successful closure. The provider-only case must leave
 the selected data home's `workspace` absent; explicit config/home selection does
 not grant local execution state authority.
 
+`project` drives prepare, apply and recover against a case-owned provider with
+no network client or credentials. The provider permits only bounded Project
+reads, the requested planning record and adding the one fixture Issue. A write
+receipt is returned while three confirmation reads hide the added membership.
+The CLI must refuse with `concord.project.indeterminate`, identify step zero,
+and retain exactly one membership mutation and one requested record. After the
+fixture exposes membership, recover must report `desired_state = observed`
+without adding any mutation. Remote-only Project commands must leave the
+selected data home's workspace absent.
+
+The source counterpart is Concord's `confirmation::exhausted` regression.
+Its error code, step, three hidden observations, two mutation counts and
+read-only recovery assertion are retained here. The provider JSON is scene-owned
+fixture state, not a product-private file. This controlled adapter trial proves
+no real GitHub service compatibility. Seatrial #124 owns the local migration
+pilot; the original Cargo regression stays in place until separate source
+coverage and formal Scene consumption are reviewed. A local `--scenes` run
+proves neither published Scene adoption nor promotion admission.
+
 Every case owns its volume, container and proxy. No host port is published.
 Concord subprocesses have a deadline, the proxy is joined, and the runner's
 normal lane teardown must independently report successful cleanup. Network

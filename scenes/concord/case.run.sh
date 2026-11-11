@@ -1,4 +1,4 @@
-case "$1" in context|release) mode=$1 ;; *) exit 97 ;; esac
+case "$1" in context|release|project) mode=$1 ;; *) exit 97 ;; esac
 docker run --rm \
   --name "${SEATRIAL_LANE}-concord-${mode}" \
   --network "$SEATRIAL_LANE" \
