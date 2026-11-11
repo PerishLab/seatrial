@@ -20,6 +20,7 @@
       ],
       "evidence": [
         "driver/workspace.py",
+        "driver/daily/common.py",
         "driver/main.py",
         "driver/host.py",
         "driver/wire.py",
@@ -76,6 +77,7 @@
       ],
       "evidence": [
         "driver/flow.py",
+        "driver/daily/common.py",
         "driver/main.py",
         "driver/host.py",
         "driver/wire.py",
