@@ -5,7 +5,7 @@ import termios
 import time
 from types import SimpleNamespace
 
-from daily.common import settle, until
+from daily.common import config, profile, settle, until
 from daily.entry import describe, finished
 from host import emit
 from terminal import Terminal
@@ -22,9 +22,11 @@ def empty(view):
 
 def connect(trial, proxy):
     guest = SimpleNamespace(binary=trial.host.binary, path=proxy.path, env=trial.host.env)
-    view = Terminal.launch(guest, [*trial.settings, "connect", str(trial.session), "--take", *template(trial.host, "untracked")], (120, 28))
+    settings = config(trial.host, profile() + "[header]\nenabled=false\nformat=''\n[status]\n[[status.lines]]\nleft=''\n", "recovery-empty.toml")
+    view = Terminal.launch(guest, [*settings, "connect", str(trial.session), "--take", *template(trial.host, "untracked")], (120, 28))
     trial.views.append(view)
-    until(view, "control")
+    until(view, "READY")
+    wait(lambda: trial.owner() is not None)
     return view
 
 

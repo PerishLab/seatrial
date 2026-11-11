@@ -6,8 +6,9 @@ from host import emit
 from terminal import Terminal
 from wire import geometry, wait
 from workspace import join
-from .common import active, config, launch, panes, profile, settle, state, until
-from .entry import shell
+from ..common import active, legacy as config, launch, panes, profile, settle, state, until
+from ..entry import shell
+from . import bars
 
 
 def settings():
@@ -34,7 +35,7 @@ def budget(host):
         view.write(f"cd '{directory}'\r".encode())
         until(view, "cwd~" + str(directory))
         assert view.view.colors[0][0] == 4
-        observer = Terminal(host, ["--no-config", "connect", str(value["id"])], (100, 24))
+        observer = Terminal(host, [*config(host, "", "observer-legacy.toml"), "connect", str(value["id"])], (100, 24))
         settle(observer)
         assert client.screen(pane)["extent"]["height"] == 21
         observer.write(b"\x07h")
@@ -46,10 +47,10 @@ def budget(host):
         view.write(b"?")
         until(view, "Prefix:")
         path = host.root / "client.toml"
-        path.write_text(original.replace("Asia/Shanghai", "local").replace("C-q", "C-a"))
+        config(host, original.replace("Asia/Shanghai", "local").replace("C-q", "C-a"))
         view.write(b"\x11r")
         until(view, "Configuration unchanged")
-        path.write_text(original.replace("enabled=true", "enabled=false").replace("separator=true", "separator=false").replace("C-q", "C-a"))
+        config(host, original.replace("enabled=true", "enabled=false").replace("separator=true", "separator=false").replace("C-q", "C-a"))
         view.write(b"\x11r")
         until(view, "Configuration reloaded")
         wait(lambda: not state(client)["header"])
@@ -110,6 +111,7 @@ def traffic(host):
 
 
 def run(host):
+    bars.run(host)
     budget(host)
     tiny(host)
     traffic(host)

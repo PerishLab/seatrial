@@ -14,7 +14,7 @@ class Wire:
         self.events = []
         self.hello = self.read()["Hello"]
         self.version = self.hello["version"]
-        assert self.version == 8, self.hello
+        assert self.version == 9, self.hello
 
     def close(self):
         self.socket.close()

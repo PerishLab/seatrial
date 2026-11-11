@@ -4,7 +4,7 @@ from host import Host, emit
 from terminal import Terminal
 from wire import geometry, text, wait
 from workspace import join
-from .common import config, data, send, settle, until
+from .common import legacy as config, data, send, settle, until
 
 
 def page(client, pane, previous=None, top=None):
@@ -87,7 +87,7 @@ def boundary(host, client, target, first):
     assert page(resumed, pane, first, first["first"])["screen"]["cells"] == stable["screen"]["cells"]
     invalid = {"ticket": 1, "back": 0, "scope": dict(first["scope"], host=[0] * 16), "top": first["first"], "column": 0}
     refuse(client, pane, invalid)
-    view = Terminal(host, ["--no-config", "connect", str(session)], (widthof(first), 25))
+    view = Terminal(host, [*config(host, "", "observer-legacy.toml"), "connect", str(session)], (widthof(first), 25))
     try:
         until(view, "HISTORY-DONE")
         view.write(b"\x07\x1b[5~")

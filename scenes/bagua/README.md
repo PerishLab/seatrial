@@ -1,7 +1,7 @@
 # Bagua Linux scenes
 
 Twelve required cases drive only the verified, formally distributed Bagua CLI,
-public wire v8 and documented configuration. Each gets a separate labelled
+public wire v9 and documented configuration. Each gets a separate labelled
 container and private volume. First-party artifacts follow the configured RC
 or stable channel and retain their resolved identities. There is no product
 crate dependency, source-checkout lookup, runtime Cargo build, testing switch,
@@ -160,3 +160,21 @@ The complete formal group must be published through Depot and consumed in an exa
 Bagua candidate run with all twelve required cases, full service identities and
 cleanup, followed by independent current qualification and stable association.
 Bagua #70 owns release/install/query handoff; human #33 remains independent.
+
+
+Seatrial #121 preserves explicit legacy `components` profiles for the earlier
+geometry, copy and interaction cases. Their configuration helper supplies those
+values without changing the product defaults; ordinary cold-entry racing still
+uses no configuration and waits for the actual new header presentation.
+The display case separately drives the unconfigured two-row footer and pane
+header, indexed colors, blank system region, real cursor and application mouse,
+and narrow resize navigation. Custom templates exercise top status, bottom pane
+headers, left/center/right alignment, window iteration and style, display-column
+cropping and a numeric screen-width condition. Invalid templates, source/node
+budgets, recursive lists, control literals and mixed old/new forms refuse through
+the formal executable. Invalid reload preserves the same process; valid reload
+moves rows while retaining it. Empty templates retain observation role, prefix,
+copy and refusal feedback. Recovery proxy clients also use an explicitly empty
+single-row template, proving actual unknown-outcome feedback and fresh recovery
+remain visible. No old required case is removed. Publication and the complete
+formal twelve-case candidate run remain separate from these material changes.
