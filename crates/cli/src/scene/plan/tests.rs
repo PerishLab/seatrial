@@ -86,7 +86,7 @@ fn catalogues() {
     assert_eq!(names(&native[0]), ["health-lite", "again-lite"]);
     assert!(native[0].setup.prepare.is_empty());
     let concord = select(Path::new("../../scenes/concord"), &[]).unwrap();
-    assert_eq!(names(&concord[0]), ["context", "release"]);
+    assert_eq!(names(&concord[0]), ["context", "release", "project"]);
     assert!(concord[0].control.is_none());
 }
 

@@ -46,6 +46,29 @@
         "proxy.py",
         "provider.py"
       ]
+    },
+    {
+      "id": "project",
+      "role": "normative",
+      "subjects": [
+        "concord"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "concord"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "project.py",
+        "planning.py",
+        "project.sh",
+        "case.run.sh"
+      ]
     }
   ]
 }

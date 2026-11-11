@@ -16,3 +16,8 @@ group = "concord"
 id = "release"
 manifest = "release.toml"
 group = "concord"
+
+[[cases]]
+id = "project"
+manifest = "project.toml"
+group = "concord"
