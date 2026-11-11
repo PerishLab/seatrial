@@ -6,6 +6,7 @@ from host import emit, sessions
 from terminal import Terminal
 from wire import created, geometry, text, wait
 from workspace import join
+from daily.common import legacy
 
 
 def output(host):
@@ -30,7 +31,7 @@ def output(host):
     shown = [m["Screen"]["state"] for m in messages if "Screen" in m and m["Screen"]["pane"] == pane]
     full = shown[-1] if shown else resumed.view(pane)
     assert full["cells"] == screen["cells"] and full["revision"] == screen["revision"] and full["bytes"] == screen["bytes"]
-    view = Terminal(host, ["connect", str(session)], (3, 2))
+    view = Terminal(host, [*legacy(host, "", "flow-legacy.toml"), "connect", str(session)], (3, 2))
     try:
         for columns, rows in [(1, 1), (2, 2), (8, 3), (3, 2)]:
             view.resize(columns, rows)

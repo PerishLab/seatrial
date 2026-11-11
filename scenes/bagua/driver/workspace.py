@@ -5,6 +5,7 @@ import time
 from host import emit, sessions
 from terminal import Terminal
 from wire import created, geometry, text, wait
+from daily.common import legacy
 
 
 def received(host):
@@ -51,7 +52,7 @@ def control(host):
 
 def launch(host):
     program = host.program("echo")
-    args = ["open", "--executable", program["executable"], "--cwd", program["cwd"]]
+    args = [*legacy(host, "", "workspace-legacy.toml"), "open", "--executable", program["executable"], "--cwd", program["cwd"]]
     for arg in program["args"]:
         args.append("--arg=" + arg)
     for name, value in program["environment"].items():
@@ -91,7 +92,7 @@ def interactive(host):
         before = sessions(monitor)[-1]
         joined = {int(key) for key in before["clients"]}
         assert before["control"]["owner"] in joined
-        observer = Terminal(host, ["connect", str(session)], (12, 4))
+        observer = Terminal(host, [*legacy(host, "", "workspace-observer.toml"), "connect", str(session)], (12, 4))
         peers = wait(lambda: [int(key) for key in sessions(monitor)[-1]["clients"] if int(key) not in joined])
         assert len(peers) == 1
         peer = peers[0]

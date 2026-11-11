@@ -178,3 +178,12 @@ copy and refusal feedback. Recovery proxy clients also use an explicitly empty
 single-row template, proving actual unknown-outcome feedback and fresh recovery
 remain visible. No old required case is removed. Publication and the complete
 formal twelve-case candidate run remain separate from these material changes.
+
+The first v0.7.0 RC run passed ten cases and cleaned its lane, but exposed two
+remaining implicit legacy baselines: flow's 3x2 observer assumed one status row,
+and workspace's application mouse coordinates assumed no pane header. Those
+clients now explicitly select the same legacy profile, including the later
+observer that acquires control. Their sizes, original byte assertions, refusal
+checks and timeouts remain. The separate default/custom display and cold-entry
+cases continue to use new templates. A failed full run is retained and this
+material correction requires another complete formal qualification.
