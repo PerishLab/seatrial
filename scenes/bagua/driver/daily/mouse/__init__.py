@@ -1,10 +1,11 @@
 import base64
 
+from .tracking import tracking
 from host import emit
 from terminal import Terminal
 from wire import geometry, text, wait
 from workspace import join
-from .common import active, legacy as config, launch, panes, profile, settle, state, until
+from ..common import active, legacy as config, launch, panes, profile, settle, state, until
 
 
 def copied(view):
@@ -121,6 +122,7 @@ def divider(host):
 
 
 def run(host):
+    tracking(host)
     samples = [
         {"target": "local", "source": "hello", "text": "hello", "size": (80, 25), "end": (5, 1), "ready": ("hello", 1)},
         {"target": "osc52", "source": "hello", "text": "hello", "size": (80, 25), "end": (5, 1), "ready": ("hello", 1)},

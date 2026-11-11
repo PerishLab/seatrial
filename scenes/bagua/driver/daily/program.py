@@ -120,5 +120,27 @@ def departure(root):
     raise SystemExit(settings.get("code", 0))
 
 
+def motion(root):
+    tty.setraw(0)
+    path = root / ("motion-" + str(os.getpid()))
+    os.write(1, b"\x1b[2J\x1b[HMOTION-READY\x1b[?1006h")
+    with path.with_suffix(".bin").open("ab", buffering=0) as output:
+        monitor(path, output)
+
+
+def monitor(path, output):
+    previous = "off"
+    while True:
+        mode = path.with_suffix(".mode").read_text() if path.with_suffix(".mode").exists() else "off"
+        if mode != previous:
+            os.write(1, b"\x1b[?1003h" if mode == "on" else b"\x1b[?1003l")
+            previous = mode
+        if select.select([0], [], [], 0.01)[0]:
+            value = os.read(0, 4096)
+            if not value:
+                return
+            output.write(value)
+
+
 def modes():
-    return {"departure": departure, "history": history, "keyboard": keyboard, "clipboard": clipboard, "counter": counter, "untracked": untracked, "protocol": protocol}
+    return {"motion": motion, "departure": departure, "history": history, "keyboard": keyboard, "clipboard": clipboard, "counter": counter, "untracked": untracked, "protocol": protocol}
