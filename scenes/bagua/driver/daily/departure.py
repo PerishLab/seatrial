@@ -7,7 +7,7 @@ from terminal import Terminal
 from wire import created, geometry, text, wait
 from workspace import join
 from interaction.proxy import Proxy
-from .common import active, config, launch, panes, profile, state, until
+from .common import active, legacy as config, launch, panes, profile, state, until
 from .entry import describe, finished, shell
 
 

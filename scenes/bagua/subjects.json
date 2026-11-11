@@ -248,7 +248,8 @@
         }
       ],
       "evidence": [
-        "driver/daily/display.py",
+        "driver/daily/display/__init__.py",
+        "driver/daily/display/bars.py",
         "driver/daily/common.py",
         "driver/main.py",
         "driver/host.py",

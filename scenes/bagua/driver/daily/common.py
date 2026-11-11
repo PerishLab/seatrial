@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import time
 
@@ -14,6 +15,23 @@ def config(host, contents, name="client.toml"):
     path = host.root / name
     path.write_text(contents)
     return ["--config", str(path)]
+
+
+
+def legacy(host, contents, name="client.toml"):
+    sections = {
+        "header": "components=['pane','command','cwd']\n",
+        "status": "components=['session','windows','prefix','clock','notice']\n",
+    }
+    for section, fields in sections.items():
+        mark = "[" + section + "]\n"
+        parts = contents.split(mark, 1)
+        if len(parts) == 1:
+            enabled = "enabled=false\n" if section == "header" else ""
+            contents += "\n" + mark + enabled + fields
+        elif not re.search(r"(?m)^components\s*=", parts[1].split("\n[", 1)[0]):
+            contents = parts[0] + mark + fields + parts[1]
+    return config(host, contents, name)
 
 
 def profile():
@@ -33,7 +51,7 @@ Alt-q='detach'
 
 def launch(host, mode, settings=None):
     program = host.program(mode)
-    args = (settings or ["--no-config"]) + ["open", "--executable", program["executable"], "--cwd", program["cwd"]]
+    args = (settings or legacy(host, "", "legacy.toml")) + ["open", "--executable", program["executable"], "--cwd", program["cwd"]]
     args.extend("--arg=" + arg for arg in program["args"])
     for name, value in program["environment"].items():
         args.extend(["--env", name + "=" + value])

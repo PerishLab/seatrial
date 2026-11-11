@@ -4,7 +4,7 @@ from host import emit
 from terminal import Terminal
 from wire import geometry, text, wait
 from workspace import join
-from .common import active, config, launch, panes, profile, settle, state, until
+from .common import active, legacy as config, launch, panes, profile, settle, state, until
 
 
 def copied(view):
@@ -65,7 +65,7 @@ def manual(host):
         view.write(b"\x11c")
         wait(lambda: copied(view) == ["52;c;aGVsbG8="])
         path = host.root / "client.toml"
-        path.write_text(original.replace("target='osc52'", "target='osc52'\nlimit=4").replace("copy_on_release=false", "copy_on_release=true"))
+        config(host, original.replace("target='osc52'", "target='osc52'\nlimit=4").replace("copy_on_release=false", "copy_on_release=true"))
         view.write(b"\x11r")
         until(view, "Configuration reloaded")
         drag(view, (5, 1))
@@ -96,7 +96,7 @@ def divider(host):
         view.write(b"\x1b[<0;40;2M\x1b[<32;51;2M\x1b[<0;51;2m")
         wait(lambda: client.screen(first)["extent"]["width"] == 50)
         assert client.screen(second)["extent"]["width"] == 29
-        observer = Terminal(host, ["--no-config", "connect", str(value["id"])], (80, 24))
+        observer = Terminal(host, [*config(host, "", "observer-legacy.toml"), "connect", str(value["id"])], (80, 24))
         before = state(client)
         observer.write(b"\x1b[<0;51;2M\x1b[<32;60;2M\x1b[<0;60;2m")
         settle(observer)

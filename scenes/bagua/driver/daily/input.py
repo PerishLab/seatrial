@@ -2,7 +2,7 @@ from host import emit
 from terminal import Terminal
 from wire import text, wait
 from workspace import join
-from .common import active, config, data, launch, panes, profile, settle, state, until
+from .common import active, legacy as config, data, launch, panes, profile, settle, state, until
 
 
 def negotiated(host, flags):

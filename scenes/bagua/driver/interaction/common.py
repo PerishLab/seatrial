@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from daily.common import config, panes, profile, until
+from daily.common import legacy as config, panes, profile, until
 from daily.entry import describe, finished, shell
 from host import sessions
 from terminal import Terminal

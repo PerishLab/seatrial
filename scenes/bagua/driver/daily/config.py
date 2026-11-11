@@ -3,7 +3,7 @@ import json
 from host import emit
 from terminal import Terminal
 from wire import wait
-from .common import command, config, launch, panes, profile, state, until
+from .common import command, legacy as config, launch, panes, profile, state, until
 
 
 def report(host, args, env=None):
@@ -57,12 +57,12 @@ def reload(host):
         before = state(client)
         path = host.root / "client.toml"
         for text in [original.replace("C-q", "C-a") + "[status]\ntimezone='local'\n", original + "[history]\nlines=100\n"]:
-            path.write_text(text)
+            config(host, text)
             view.write(b"\x11r")
             until(view, "Configuration unchanged")
             view.write(b"\x11?")
             until(view, "Prefix:")
-        path.write_text(original.replace("C-q", "C-a").replace("split-rows", "window") + "[mouse]\ncopy_on_release=false\n[clipboard]\ntarget='local'\n[header]\nenabled=true\n[status]\nseparator=true\n")
+        config(host, original.replace("C-q", "C-a").replace("split-rows", "window") + "[mouse]\ncopy_on_release=false\n[clipboard]\ntarget='local'\n[header]\nenabled=true\n[status]\nseparator=true\n")
         view.write(b"\x11r")
         until(view, "Configuration reloaded")
         wait(lambda: state(client)["header"])

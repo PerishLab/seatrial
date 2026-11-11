@@ -4,7 +4,7 @@ import signal
 import subprocess
 import time
 
-from daily.common import config, panes, profile, settle, until
+from daily.common import legacy as config, panes, profile, settle, until
 from daily.entry import describe, finished, shell
 from daily import departure
 from host import alive, emit, sessions

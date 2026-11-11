@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from host import emit, sessions
 from terminal import Terminal
 from wire import wait
-from .common import active, command, config, panes, profile, settle, state, until
+from .common import active, command, legacy as config, panes, profile, settle, state, until
 
 
 def describe(client, pane):
@@ -126,7 +126,7 @@ def racing(host, guest, path):
         def settled():
             for view in views:
                 view.drain()
-            return sum("[t] Take" in view.screen() for view in views) == 1 and sum("bagua w1 control" in view.screen() for view in views) == 1
+            return sum("[t] Take" in view.screen() for view in views) == 1 and sum("W1:" in view.screen() for view in views) == 1
         wait(settled)
         loser = next(view for view in views if "[t] Take" in view.screen())
         loser.write(b"q")
