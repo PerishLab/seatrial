@@ -221,7 +221,8 @@
         }
       ],
       "evidence": [
-        "driver/daily/mouse.py",
+        "driver/daily/mouse/__init__.py",
+        "driver/daily/mouse/tracking.py",
         "driver/daily/common.py",
         "driver/main.py",
         "driver/host.py",

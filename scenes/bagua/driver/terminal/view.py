@@ -8,6 +8,7 @@ class View:
         self.decoder = codecs.getincrementaldecoder("utf-8")()
         self.pending = ""
         self.osc = []
+        self.modes = {}
         self.background = None
         self.wrap = False
         self.x = 0
@@ -80,6 +81,8 @@ class View:
                 self.sgr(values)
             case "h" | "l" if source == "?7":
                 self.wrap = action == "h"
+            case "h" | "l" if source in ["?1000", "?1002", "?1003", "?1006"]:
+                self.modes[int(source[1:])] = action == "h"
             case "h" if source == "?1049":
                 self.resize(self.columns, self.rows)
 
