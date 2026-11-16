@@ -14,6 +14,13 @@ setup = ["lock/suite.toml"]
 binding = "generation"
 profile = "host/v1"
 
+[[groups]]
+id = "cache"
+root = "cache"
+setup = ["cache/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
 [[cases]]
 id = "writer"
 manifest = "writer/writer.toml"
@@ -28,3 +35,8 @@ group = "lock"
 id = "lock-required"
 manifest = "lock/required.toml"
 group = "lock"
+
+[[cases]]
+id = "cache-lifecycle"
+manifest = "cache/lifecycle.toml"
+group = "cache"

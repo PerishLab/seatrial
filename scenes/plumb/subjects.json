@@ -72,6 +72,28 @@
         "lock/required.py",
         "lock/fixture.py"
       ]
+    },
+    {
+      "id": "cache-lifecycle",
+      "role": "normative",
+      "subjects": [
+        "plumb"
+      ],
+      "fixtures": [],
+      "preparation": [
+        "plumb"
+      ],
+      "conditions": [
+        {
+          "platform": "linux-x86_64",
+          "backend": "none"
+        }
+      ],
+      "evidence": [
+        "cache/lifecycle.py",
+        "cache/lane.sh",
+        "cache/lifecycle.toml"
+      ]
     }
   ]
 }
