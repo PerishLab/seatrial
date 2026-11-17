@@ -40,3 +40,8 @@ group = "lock"
 id = "cache-lifecycle"
 manifest = "cache/lifecycle.toml"
 group = "cache"
+
+[[cases]]
+id = "cache-run"
+manifest = "cache/run.toml"
+group = "cache"
