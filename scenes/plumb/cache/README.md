@@ -20,3 +20,19 @@ cooperative-cancellation cleanup are exercised by the Issue acceptance harness
 through the public runner, not by assertions inside this success case. A
 SIGKILL is documented as an orchestration residual rather than a Plumb cleanup
 guarantee.
+
+## Disposable source compilation
+
+`cache-run` drives the released `plumb cache run` CLI with lane-private,
+dependency-free Cargo source. It checks successful compilation, nonzero and
+signal status, timeout, background process-group cleanup, cooperative cancellation
+alongside an independent successful run, literal arguments, existing binding and
+output refusal, and explicit retention when ownership records change. It also
+checks source files, the ordinary source target and unrelated state remain intact.
+
+The bounded stdout observation retains each admitted invocation, result and raw
+stdout/stderr, plus the actual Plumb version and binary digest. The generic runner
+owns lane teardown, including intentionally preserved ownership-conflict material.
+This case qualifies a formal Plumb prerelease through the public CLI; source-built
+or locally substituted binaries remain development observations only. Supervisor
+SIGKILL and deliberately escaped process groups remain outside cleanup guarantees.

@@ -1,5 +1,5 @@
 case "$1" in
-lifecycle) ;;
+lifecycle|run) ;;
 *) exit 2 ;;
 esac
 docker run --rm \
