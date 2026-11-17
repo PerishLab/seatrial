@@ -11,6 +11,8 @@ pub struct Manifest {
     #[serde(default)]
     pub products: Vec<String>,
     pub image: Option<String>,
+    #[serde(default)]
+    pub images: Vec<String>,
     pub timeout: u64,
     pub command: Vec<String>,
     #[serde(default = "yes")]
@@ -53,7 +55,11 @@ fn validate(manifest: &Manifest) -> Result<(), String> {
     if manifest.command.first().is_none_or(String::is_empty) {
         return Err("scene command is empty".into());
     }
-    products(&manifest.products)
+    products(&manifest.products)?;
+    if manifest.images.len() > 4 {
+        return Err("scene peer images exceed four".into());
+    }
+    products(&manifest.images)
 }
 
 pub(super) fn products(names: &[String]) -> Result<(), String> {

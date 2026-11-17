@@ -41,3 +41,12 @@ include = ["crates/**/*.rs", "scenes/*/**/*.rs", "scenes/*/**/*.py"]
 
 [word]
 single = true
+
+[[grant]]
+paths = ["scenes/ensign/host.py"]
+syntax = "environment"
+
+[[boundary]]
+allow = ["word"]
+note = "Python BaseHTTPRequestHandler requires the exact log_message and do_GET/do_POST/do_PATCH/do_DELETE callback spellings at this inert HTTP fixture/relay boundary."
+paths = ["scenes/ensign/fixture.py"]

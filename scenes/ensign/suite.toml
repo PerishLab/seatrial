@@ -1,0 +1,2 @@
+products = ["ensign", "runseal", "plumb"]
+timeout = 240

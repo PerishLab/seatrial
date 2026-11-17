@@ -1,0 +1,18 @@
+format = 2
+
+[[groups]]
+id = "ensign"
+root = "."
+setup = ["suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "ensign-actual"
+manifest = "cases/actual.toml"
+group = "ensign"
+
+[[cases]]
+id = "ensign-claims"
+manifest = "cases/claims.toml"
+group = "ensign"
