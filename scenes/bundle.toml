@@ -213,3 +213,20 @@ group = "bagua"
 id = "bagua-observation"
 manifest = "bagua/cases/observation.toml"
 group = "bagua"
+
+[[groups]]
+id = "ensign"
+root = "ensign"
+setup = ["ensign/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "ensign-actual"
+manifest = "ensign/cases/actual.toml"
+group = "ensign"
+
+[[cases]]
+id = "ensign-claims"
+manifest = "ensign/cases/claims.toml"
+group = "ensign"

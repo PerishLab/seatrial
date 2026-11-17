@@ -89,3 +89,16 @@ Plumb product supplies the verified execution image. No generic runner or
 product test endpoint is added. The scene records current inventory/catalog
 facts and honest procurement unknowns, then relies on the normal labelled
 lane teardown. It never becomes part of Guard or the default live suite.
+
+## Declared peer images
+
+Case manifests may select up to four unique product `images` in addition to the
+primary `image`. Preparation includes their channel artifacts and resolves every
+selected image once into run/v1. Case environments receive immutable digests,
+never mutable templates for declared peers or primary. No new image authority,
+configuration pin, runtime Cargo build or product-specific runner branch follows.
+Ensign132 uses its formally published OCI API beside the public CLI archives;
+the CLI archive alone does not contain ensign-api. Its two isolated cases prove
+actual Ensign exchange and independently labelled inert issuer refusals, never
+Alibaba STS or real permissions. Sudo and signing remain separate volumes and
+serve never mounts sudo.

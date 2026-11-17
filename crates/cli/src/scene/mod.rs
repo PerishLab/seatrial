@@ -17,7 +17,7 @@ use tokio::task::JoinSet;
 struct Batch {
     group: Arc<stage::Group>,
     suite: Arc<plan::Suite>,
-    images: Vec<Option<String>>,
+    images: Vec<Images>,
 }
 
 pub struct Request<'a> {
@@ -82,6 +82,7 @@ async fn prepare(
         products.extend(suite.setup.products.iter().cloned());
         for scene in &suite.scenes {
             products.extend(scene.manifest.products.iter().cloned());
+            products.extend(scene.manifest.images.iter().cloned());
         }
     }
     let start = Instant::now();
@@ -131,14 +132,25 @@ async fn images(
     suite: &plan::Suite,
     lane: &Lane,
     record: &mut crate::record::Record,
-) -> Result<Vec<Option<String>>, String> {
+) -> Result<Vec<Images>, String> {
     let mut images = Vec::new();
     for scene in &suite.scenes {
         let image = match &scene.manifest.image {
             Some(name) => Some(inputs::image(pins, name, lane, record).await?),
             None => None,
         };
-        images.push(image);
+        let mut peers = Vec::new();
+        for name in &scene.manifest.images {
+            peers.push((name.clone(), inputs::image(pins, name, lane, record).await?));
+        }
+        if let (Some(name), Some(image)) = (&scene.manifest.image, &image) {
+            peers.retain(|(peer, _)| peer != name);
+            peers.push((name.clone(), image.clone()));
+        }
+        images.push(Images {
+            primary: image,
+            peers,
+        });
     }
     Ok(images)
 }
@@ -180,15 +192,13 @@ async fn judge(
     suite: &plan::Suite,
     group: &stage::Group,
     lane: &Lane,
-    case: (usize, Option<String>),
+    case: (usize, Images),
 ) -> crate::record::Case {
     let scene = &suite.scenes[case.0];
     let start = Instant::now();
     let result = async {
         let mut spec = stage::case(group, scene, lane).await?;
-        if let Some(image) = case.1 {
-            spec.env.push(("SEATRIAL_IMAGE".into(), image));
-        }
+        case.1.apply(&mut spec.env);
         task::execute(&spec, lane.stop.clone()).await
     }
     .await;
@@ -208,3 +218,26 @@ async fn judge(
         error: result.err(),
     }
 }
+
+struct Images {
+    primary: Option<String>,
+    peers: Vec<(String, String)>,
+}
+
+impl Images {
+    fn apply(&self, env: &mut Vec<(String, String)>) {
+        for (name, image) in &self.peers {
+            let name = format!("SEATRIAL_IMAGE_{}", name.to_ascii_uppercase());
+            env.retain(|(key, _)| key != &name);
+            env.push((name, image.clone()));
+        }
+        if let Some(image) = &self.primary {
+            env.retain(|(key, _)| key != "SEATRIAL_IMAGE");
+            env.push(("SEATRIAL_IMAGE".into(), image.clone()));
+        }
+    }
+}
+
+#[cfg(test)]
+#[path = "stage/images.rs"]
+mod testing;

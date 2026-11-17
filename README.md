@@ -408,3 +408,14 @@ second bootstrap without a second custody file, and requires status `sealed`.
 Each gets a fresh volume. The Keel group and its PostgreSQL instances remain;
 the portable group is excluded from the aggregate catalogue defaults and selected through
 its own Depot bundle. The stable writer bundle is independent of this pilot.
+
+## Explicit peer images
+
+A case may declare `images = ["ensign"]` alongside its primary `image`.
+These at most four unique product selectors resolve through the same channel
+configuration, verified product artifacts and image recorder before execution.
+No raw image URL or release pin is accepted. Each declared peer receives its
+immutable `SEATRIAL_IMAGE_<PRODUCT>` digest, overriding its configured template;
+the primary also receives that digest under its product name and SEATRIAL_IMAGE.
+The run/v1 image records retain every actual reference/digest. Setup controls
+remain products/prepare/timeout only; peer declarations belong to case manifests.

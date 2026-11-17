@@ -50,3 +50,30 @@ fn duplicate() {
     );
     assert!(read("stable", root.path().join("group/case.toml")).is_err());
 }
+
+#[test]
+fn peers() {
+    let root = tempfile::tempdir().unwrap();
+    fixture(
+        root.path(),
+        "images=['ensign','plumb']\ntimeout=30\ncommand=['sh']\n",
+    );
+    let scene = read("peers", root.path().join("group/case.toml")).unwrap();
+    assert_eq!(scene.manifest.images, ["ensign", "plumb"]);
+}
+
+#[test]
+fn refused() {
+    for images in [
+        "['ensign','ensign']",
+        "['https://foreign.example/image']",
+        "['one','two','three','four','five']",
+    ] {
+        let root = tempfile::tempdir().unwrap();
+        fixture(
+            root.path(),
+            &format!("images={images}\ntimeout=30\ncommand=['sh']\n"),
+        );
+        assert!(read("peers", root.path().join("group/case.toml")).is_err());
+    }
+}
