@@ -1,7 +1,7 @@
 use crate::Endpoint;
 use std::io;
 use std::net::UdpSocket;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const LIMIT: usize = 1500;
 const PATIENCE: Duration = Duration::from_secs(2);
@@ -75,9 +75,10 @@ impl Endpoint<'_> {
         Ok(())
     }
 
-    pub fn quiet(&self, remote: &str) -> io::Result<()> {
+    pub fn quiet(&self, remote: &str, size: &str) -> io::Result<()> {
         let socket = self.bind(remote)?;
-        socket.send(b"protected UDP must not reach this destination")?;
+        let size = size.parse::<usize>().unwrap_or(48).min(LIMIT);
+        socket.send(&vec![0x78; size])?;
         let mut room = [0; LIMIT];
         match socket.recv(&mut room) {
             Ok(_) => Err(io::Error::other("unexpected UDP reply during failure")),
@@ -95,10 +96,67 @@ impl Endpoint<'_> {
         }
     }
 
+    pub fn refused(&self, remote: &str) -> io::Result<()> {
+        let socket = self.bind(remote)?;
+        socket.send(b"refused UDP")?;
+        let mut reply = [0; LIMIT];
+        match socket.recv(&mut reply) {
+            Err(error) if error.kind() == io::ErrorKind::ConnectionRefused => Ok(()),
+            other => Err(io::Error::other(format!(
+                "expected a socket ICMP error: {other:?}"
+            ))),
+        }
+    }
+
     fn bind(&self, remote: &str) -> io::Result<UdpSocket> {
         let socket = UdpSocket::bind(self.0)?;
         socket.set_read_timeout(Some(PATIENCE))?;
         socket.connect(remote)?;
         Ok(socket)
+    }
+}
+
+pub fn crowd(remote: &str, origin: &str) -> io::Result<()> {
+    let sockets = (0..40)
+        .map(|_| gathering(remote))
+        .collect::<io::Result<Vec<_>>>()?;
+    let start = Instant::now();
+    let header = format!("{origin} 3478 admitted");
+    let mut seen = [false; 40];
+    while start.elapsed() < Duration::from_secs(4) {
+        for (index, socket) in sockets.iter().enumerate() {
+            collect(socket, &header, &mut seen[index])?;
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let answered = seen.into_iter().filter(|answer| *answer).count();
+    if answered != 32 {
+        return Err(io::Error::other(format!(
+            "UDP session budget expected 32 replies, received {answered}"
+        )));
+    }
+    println!("UDP session budget held at {answered} replies.");
+    Ok(())
+}
+
+fn gathering(remote: &str) -> io::Result<UdpSocket> {
+    let socket = UdpSocket::bind("0.0.0.0:0")?;
+    socket.set_nonblocking(true)?;
+    socket.connect(remote)?;
+    socket.send(b"admitted")?;
+    Ok(socket)
+}
+
+fn collect(socket: &UdpSocket, expected: &str, seen: &mut bool) -> io::Result<()> {
+    let mut reply = [0; 96];
+    match socket.recv(&mut reply) {
+        Ok(size) if !*seen && &reply[..size] == expected.as_bytes() => {
+            *seen = true;
+            Ok(())
+        }
+        Err(error) if error.kind() == io::ErrorKind::WouldBlock => Ok(()),
+        other => Err(io::Error::other(format!(
+            "unexpected UDP budget response: {other:?}"
+        ))),
     }
 }

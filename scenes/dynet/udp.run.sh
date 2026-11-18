@@ -99,11 +99,20 @@ jq -n --arg key "$(cat "$work/signer")" '{version:1,target:{device:"relay0",reso
 
 sources=$firstip/32,$secondip/32
 start() {
-  docker exec -d "$router" sh -eu -c 'umask 077; echo $$ > /device/runtime.pid;
+  docker exec -d "$router" sh -eu -c 'umask 077; ulimit -n 512; echo $$ > /device/runtime.pid;
     exec env DYNET_SPAN=198.51.100.0/24 DYNET_LOCAL=false DYNET_SOURCES="$1" /fixture/dynet --instance dynet9 --state /device --port 15353 divert --bootstrap /device/bootstrap.json --seconds 0 >>/device/runtime.log 2>&1' sh "$sources"
   deadline=$(( $(date +%s) + 20 ))
   until gateway /fixture/wire query 198.51.100.1:15353 ready.fixture 203.0.113.7; do
     [ "$(date +%s)" -lt "$deadline" ] || return 1
+    sleep 1
+  done
+}
+crash() {
+  worker=$(gateway cat /device/runtime.pid)
+  gateway kill -KILL "$worker"
+  limit=$(( $(date +%s) + 5 ))
+  while gateway test -e "/proc/$worker"; do
+    [ "$(date +%s)" -lt "$limit" ] || return 1
     sleep 1
   done
 }
@@ -122,6 +131,12 @@ trap diagnose EXIT
 docker exec -d "$router" /fixture/wire dns 127.0.0.2:53 203.0.113.7
 gateway env DYNET_SPAN=198.51.100.0/24 DYNET_LOCAL=false DYNET_SOURCES="$sources" /fixture/dynet --instance dynet9 --port 15353 up --claim 203.0.113.0/24
 start
+before=$(witness)
+originalmtu=$(docker exec "$first" ip -j link show dev eth0 | jq -er '.[0].mtu')
+docker exec "$first" ip link set dev eth0 mtu 1280
+docker exec "$first" /fixture/wire quiet 0.0.0.0:25009 203.0.113.7:3478 1400
+docker exec "$first" ip link set dev eth0 mtu "$originalmtu"
+test "$(witness)" = "$before"
 docker exec "$first" /fixture/wire double 0.0.0.0:25000 203.0.113.7:3478 203.0.113.8:3478 "$exitip" &
 a=$!
 docker exec "$second" /fixture/wire round 0.0.0.0:25000 203.0.113.7:3478 "$exitip" 1400 &
@@ -149,9 +164,26 @@ docker exec "$exitnode" ip route replace 203.0.113.7/32 via "$sinkip"
 docker exec "$exitnode" ip route replace 203.0.113.8/32 via "$sinkip"
 docker exec "$second" /fixture/wire round 0.0.0.0:25002 203.0.113.8:3478 "$exitip" 48
 
-gateway sh -eu -c 'kill -KILL "$(cat /device/runtime.pid)"'
+crash
 before=$(witness)
 docker exec "$first" /fixture/wire quiet 0.0.0.0:25003 203.0.113.7:3478
 test "$(witness)" = "$before"
 start
 docker exec "$first" /fixture/wire round 0.0.0.0:25004 203.0.113.7:3478 "$exitip" 128
+
+crash
+start
+docker exec "$first" /fixture/wire crowd 203.0.113.7:3478 "$exitip"
+
+docker exec "$publisher" cat /publish/payload.json | jq 'del(.manifest.nodes[1].uot)' | put "$publisher" /publish/refused.json
+publish seal --declaration /publish/declaration.json --generation 2 --input /publish/refused.json --output /publish/refused.envelope
+docker exec "$publisher" cat /publish/refused.envelope | put "$router" /device/routing.next
+gateway mv /device/routing.next /device/routing.envelope
+deadline=$(( $(date +%s) + 20 ))
+until gateway cat /device/dynet9.control/checkpoint | jq -e '.applied.receipt.generation == 2' >/dev/null; do
+  [ "$(date +%s)" -lt "$deadline" ] || exit 1
+  sleep 1
+done
+before=$(witness)
+docker exec "$first" /fixture/wire refused 0.0.0.0:25011 203.0.113.7:3478
+test "$(witness)" = "$before"

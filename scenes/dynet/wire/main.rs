@@ -39,7 +39,9 @@ fn run(args: &[String]) -> io::Result<()> {
         "echo" => udp::echo(value(1)),
         "round" => Endpoint(value(1)).round(value(2), value(3), value(4)),
         "double" => Endpoint(value(1)).double(value(2), value(3), value(4)),
-        "quiet" => Endpoint(value(1)).quiet(value(2)),
+        "quiet" => Endpoint(value(1)).quiet(value(2), value(3)),
+        "refused" => Endpoint(value(1)).refused(value(2)),
+        "crowd" => udp::crowd(value(1), value(2)),
         _ => Err(io::Error::other("unknown fixture mode")),
     }
 }
