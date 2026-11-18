@@ -14,6 +14,7 @@ class Relay:
     def __init__(self, host):
         self.host = host
         self.count = 0
+        self.identity = None
         self.server = ThreadingHTTPServer(("0.0.0.0", 8080), Handler)
         self.server.relay = self.request
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -28,6 +29,8 @@ class Relay:
         connection.request(handler.command, handler.path, body, headers)
         response = connection.getresponse()
         received = response.read(1048576)
+        if handler.path == "/api/whoami" and response.status == 200:
+            self.identity = json.loads(received)
         if handler.path == "/api/token":
             self.count += 1
         handler.send_response(response.status)
@@ -44,8 +47,9 @@ class Relay:
 
 
 class Estate:
-    def __init__(self, host):
+    def __init__(self, host, relay):
         self.host = host
+        self.relay = relay
         self.sudo = Path("/sudo/token").read_text().strip()
 
     def call(self, method, path, value):
@@ -78,16 +82,18 @@ class Estate:
         assert status == 201
         client = Client("/trial/" + name)
         client.login(name, password)
-        identity = client.identity()
+        client.invoke(["/opt/ensign", "whoami"])
+        identity = self.relay.identity
+        assert identity["id"] == actor["id"] and identity["login"] == name
         assert identity["sub"] and identity["sub"] != str(actor["id"])
         return client, actor["id"], identity["sub"]
 
 
 def main():
-    estate = Estate(sys.argv[1])
-    estate.ready()
-    relay = Relay(estate.host)
+    relay = Relay(sys.argv[1])
     try:
+        estate = Estate(sys.argv[1], relay)
+        estate.ready()
         client, actor, subject = estate.join("alice")
         state = client.acquire("genuine", {"subject": subject}, 0)
         assert client.status(state)["federation"]["tokenPresent"] is True
