@@ -14,7 +14,10 @@ The direct control proves the WAN witness can answer from the original
 client. The live checks require the witness to see the exit address and
 return exact datagrams from two destinations. The failure checks compare
 witness request counts while the exit is down and after the router worker
-is killed. A fresh exchange must work after each recovery.
+is killed. A fresh exchange must work after each recovery. The case also
+checks fragment suppression with a smaller client MTU, saturation at the
+configured 32-session budget and the client socket's ICMP error after
+the encrypted policy removes UoT.
 
 An opaque datagram on UDP port 443 exercises routing on that port. QUIC
 interoperability and the OpenWrt/Pixel operating checks require their own
