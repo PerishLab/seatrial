@@ -16,3 +16,9 @@ group = "dynet"
 id = "dynet-gateway"
 manifest = "gateway.toml"
 group = "dynet"
+
+
+[[cases]]
+id = "dynet-udp"
+manifest = "udp.toml"
+group = "dynet"

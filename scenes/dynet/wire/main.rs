@@ -1,6 +1,7 @@
 mod dns;
 mod http;
 mod tcp;
+mod udp;
 
 use dns::address;
 use std::io;
@@ -35,6 +36,10 @@ fn run(args: &[String]) -> io::Result<()> {
         "stream" => Endpoint(value(1)).stream(value(2), value(3)),
         "reuse" => Endpoint(value(1)).reuse(),
         "fallback" => Endpoint(value(1)).fallback(),
+        "echo" => udp::echo(value(1)),
+        "round" => Endpoint(value(1)).round(value(2), value(3), value(4)),
+        "double" => Endpoint(value(1)).double(value(2), value(3), value(4)),
+        "quiet" => Endpoint(value(1)).quiet(value(2)),
         _ => Err(io::Error::other("unknown fixture mode")),
     }
 }
