@@ -16,6 +16,11 @@ stable external subjects and audience tokens. Barred/ended actors and revoked
 login custody cannot acquire another token. Already-issued JWT revocation is
 not claimed. Unexpected results fail the case.
 
+The identity assertion observes the public whoami HTTP response through the
+in-lane relay and matches its actor and login to the joined user. The CLI's
+human-readable whoami output is not treated as JSON, and no held bearer is read
+from client custody.
+
 The claims case owns an independent inert HTTP issuer and ephemeral P-256 key.
 It drives the real Ensign CLI login and Runseal public client surface. Correctly
 signed wrong issuer/subject/audience/purpose/expired/future tokens and changed

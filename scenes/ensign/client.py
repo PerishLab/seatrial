@@ -21,9 +21,6 @@ class Client:
     def login(self, login, password):
         self.invoke(["/opt/ensign", "login", login], data=password + "\n")
 
-    def identity(self):
-        return json.loads(self.invoke(["/opt/ensign", "whoami"]))
-
     def binding(self, name, values):
         path = self.root / (name + ".json")
         body = {"source": self.base, "issuer": "https://identity.example/api", "subject": "fixture-subject", "audience": "cloud", "account": "100", "provider": "acs:ram::100:oidc-provider/identity", "role": "acs:ram::100:role/operator", "id": "300", "session": "fixture-session", "duration": 900}
