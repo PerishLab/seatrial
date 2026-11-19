@@ -10,8 +10,9 @@ set to `rc`.
 seatrial run --pins /path/to/candidate-pins.toml --case dynet-udp --report /path/to/new-report.json
 ```
 
-The direct control proves the WAN witness can answer from the original
-client. The live checks require the witness to see the exit address and
+The direct control proves that the client can reach the WAN witness through
+router source NAT. This keeps return traffic compatible with Docker bridge
+filtering. The live checks require the witness to see the exit address and
 return exact datagrams from two destinations. The failure checks compare
 witness request counts while the exit is down and after the router worker
 is killed. A fresh exchange must work after each recovery. The case also

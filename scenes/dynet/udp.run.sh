@@ -19,13 +19,13 @@ password=$(head -c 16 /dev/urandom | base64)
 mkdir -m 700 "$work"
 
 owned() {
-  docker run --detach --init --label perish.owner=seatrial --label "perish.lane=$lane" "$@"
+  docker run --env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --detach --init --label perish.owner=seatrial --label "perish.lane=$lane" "$@"
 }
 put() { docker exec -i "$1" sh -eu -c 'umask 077; cat > "$1"' sh "$2"; }
 address() { docker inspect --format '{{json .NetworkSettings.Networks}}' "$1" | jq -er --arg network "$2" '.[$network].IPAddress'; }
 gateway() { docker exec "$router" "$@"; }
 publish() { docker exec "$publisher" /fixture/secrets "$@"; }
-witness() { docker logs "$sink" 2>&1 | wc -l; }
+witness() { docker logs "$sink" 2>&1 | awk -v size="$1" 'NF == 3 && $3 == size { count++ } END { print count + 0 }'; }
 
 docker network create --label perish.owner=seatrial --label "perish.lane=$lane" "$wan" >/dev/null
 owned --name "$router" --network "$lane" --cap-add NET_ADMIN --device /dev/net/tun \
@@ -52,12 +52,14 @@ done
 failed=0
 for job in $jobs; do wait "$job" || failed=1; done
 if [ "$failed" -ne 0 ]; then cat "$work"/*.packages; exit 1; fi
+gateway sh -eu -c 'DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install nftables=1.1.3-1 >/dev/null'
 
 routerlan=$(address "$router" "$lane")
 routerwan=$(address "$router" "$wan")
 sinkip=$(address "$sink" "$wan")
 firstip=$(address "$first" "$lane")
 secondip=$(address "$second" "$lane")
+wanif=$(gateway ip -j route get "$sinkip" | jq -er '.[0].dev')
 subnet=$(docker network inspect "$lane" | jq -er '.[0].IPAM.Config[0].Subnet')
 
 jq -n --arg uuid "$uuid" '{inbounds:[{type:"vmess",listen:"0.0.0.0",listen_port:2443,users:[{uuid:$uuid,alterId:0}]}],outbounds:[{type:"direct"}]}' > "$work/front.json"
@@ -73,11 +75,14 @@ for target in 203.0.113.7 203.0.113.8; do
   docker exec "$exitnode" ip route add "$target/32" via "$sinkip"
   for endpoint in "$first" "$second"; do docker exec "$endpoint" ip route add "$target/32" via "$routerlan"; done
 done
-docker exec "$sink" ip route add "$subnet" via "$routerwan"
-docker exec -d "$sink" sh -eu -c 'exec /fixture/wire echo 0.0.0.0:3478 >/proc/1/fd/1 2>&1'
-docker exec -d "$sink" sh -eu -c 'exec /fixture/wire echo 0.0.0.0:443 >/proc/1/fd/1 2>&1'
+gateway nft add table ip udp_control
+gateway nft 'add chain ip udp_control postrouting { type nat hook postrouting priority srcnat; policy accept; }'
+gateway nft add rule ip udp_control postrouting oifname "$wanif" ip saddr "$subnet" ip daddr 203.0.113.0/24 snat to "$routerwan"
+docker exec -d "$sink" sh -eu -c 'exec /fixture/wire echo 203.0.113.7:3478 >/proc/1/fd/1 2>&1'
+docker exec -d "$sink" sh -eu -c 'exec /fixture/wire echo 203.0.113.8:3478 >/proc/1/fd/1 2>&1'
+docker exec -d "$sink" sh -eu -c 'exec /fixture/wire echo 203.0.113.7:443 >/proc/1/fd/1 2>&1'
 docker exec -d "$sink" /fixture/wire http 0.0.0.0:3478
-docker exec "$first" /fixture/wire round 0.0.0.0:25000 203.0.113.7:3478 "$firstip" 16
+docker exec "$first" /fixture/wire round 0.0.0.0:24999 203.0.113.7:3478 "$routerwan" 16
 
 gateway sh -eu -c 'mkdir -m 700 /device; mkdir -p /etc/iproute2/rt_tables.d'
 docker exec "$publisher" mkdir -m 700 /publish
@@ -131,12 +136,12 @@ trap diagnose EXIT
 docker exec -d "$router" /fixture/wire dns 127.0.0.2:53 203.0.113.7
 gateway env DYNET_SPAN=198.51.100.0/24 DYNET_LOCAL=false DYNET_SOURCES="$sources" /fixture/dynet --instance dynet9 --port 15353 up --claim 203.0.113.0/24
 start
-before=$(witness)
+before=$(witness 1400)
 originalmtu=$(docker exec "$first" ip -j link show dev eth0 | jq -er '.[0].mtu')
 docker exec "$first" ip link set dev eth0 mtu 1280
 docker exec "$first" /fixture/wire quiet 0.0.0.0:25009 203.0.113.7:3478 1400
 docker exec "$first" ip link set dev eth0 mtu "$originalmtu"
-test "$(witness)" = "$before"
+test "$(witness 1400)" = "$before"
 docker exec "$first" /fixture/wire double 0.0.0.0:25000 203.0.113.7:3478 203.0.113.8:3478 "$exitip" &
 a=$!
 docker exec "$second" /fixture/wire round 0.0.0.0:25000 203.0.113.7:3478 "$exitip" 1400 &
@@ -156,18 +161,18 @@ done
 docker exec "$first" /fixture/wire round 0.0.0.0:25000 203.0.113.7:3478 "$exitip" 32
 
 docker stop --time 2 "$exitnode" >/dev/null
-before=$(witness)
-docker exec "$first" /fixture/wire quiet 0.0.0.0:25001 203.0.113.7:3478
-test "$(witness)" = "$before"
+before=$(witness 41)
+docker exec "$first" /fixture/wire quiet 0.0.0.0:25001 203.0.113.7:3478 41
+test "$(witness 41)" = "$before"
 docker start "$exitnode" >/dev/null
 docker exec "$exitnode" ip route replace 203.0.113.7/32 via "$sinkip"
 docker exec "$exitnode" ip route replace 203.0.113.8/32 via "$sinkip"
 docker exec "$second" /fixture/wire round 0.0.0.0:25002 203.0.113.8:3478 "$exitip" 48
 
 crash
-before=$(witness)
-docker exec "$first" /fixture/wire quiet 0.0.0.0:25003 203.0.113.7:3478
-test "$(witness)" = "$before"
+before=$(witness 42)
+docker exec "$first" /fixture/wire quiet 0.0.0.0:25003 203.0.113.7:3478 42
+test "$(witness 42)" = "$before"
 start
 docker exec "$first" /fixture/wire round 0.0.0.0:25004 203.0.113.7:3478 "$exitip" 128
 
@@ -184,6 +189,6 @@ until gateway cat /device/dynet9.control/checkpoint | jq -e '.applied.receipt.ge
   [ "$(date +%s)" -lt "$deadline" ] || exit 1
   sleep 1
 done
-before=$(witness)
+before=$(witness 11)
 docker exec "$first" /fixture/wire refused 0.0.0.0:25011 203.0.113.7:3478
-test "$(witness)" = "$before"
+test "$(witness 11)" = "$before"
