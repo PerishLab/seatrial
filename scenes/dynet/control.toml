@@ -1,3 +1,4 @@
+products = ["secrets", "plumb"]
 default = false
 image = "plumb"
 timeout = 600
