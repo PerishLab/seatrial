@@ -23,6 +23,7 @@ binaries = ["secrets-api"]
 [dynet]
 channel = "stable"
 authority = "https://releases.dynet.perish.uk"
+image = "ghcr.io/perishlab/images:stable"
 
 [scenes]
 authority = "https://depot.seatrial.perish.uk"

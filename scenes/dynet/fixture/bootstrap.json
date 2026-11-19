@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "target": {
+    "device": "seatrial-udp",
+    "resource": "routing",
+    "epoch": "fixture1"
+  },
+  "identityRef": "/device/identity.age",
+  "publisher": "RWSkjbbSXdA0lNfUW0/cmpSXWu2qbUXLkT6yllun46xu/dz/39q39aR6",
+  "minimum": 1,
+  "source": {
+    "kind": "file",
+    "path": "/device/routing.envelope"
+  }
+}

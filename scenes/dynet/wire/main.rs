@@ -23,9 +23,12 @@ fn main() -> ExitCode {
 fn run(args: &[String]) -> io::Result<()> {
     let value = |index| args.get(index).map(String::as_str).unwrap_or("");
     match value(0) {
-        "serve" => Endpoint("127.0.0.2:53").serve([8, 8, 8, 8]),
+        "serve" => Endpoint("127.0.0.2:53").serve([8, 8, 8, 8], None),
         "probe" => Endpoint("198.51.100.1:15353").probe("neutral.fixture", value(1)),
-        "dns" => Endpoint(value(1)).serve(address(value(2))?),
+        "dns" => Endpoint(value(1)).serve(
+            address(value(2))?,
+            args.get(3).map(|host| address(host)).transpose()?,
+        ),
         "query" => Endpoint(value(1)).probe(value(2), value(3)),
         "pressure" => Endpoint(value(1)).pressure(),
         "blackhole" => Endpoint(value(1)).blackhole(),

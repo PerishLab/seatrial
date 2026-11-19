@@ -3,8 +3,8 @@
 Run `dynet-udp` from the published scene generation against a Dynet channel
 containing Dynet #148. The release operator records the resolved channel
 seal, commit, artifact digest and scene generation from the report. For
-candidate qualification, use the normal pins file with the Dynet channel
-set to `rc`.
+candidate qualification, use the Dynet RC channel and its declared runtime
+image. The witness program is built in that image.
 
 ```sh
 seatrial run --pins /path/to/candidate-pins.toml --case dynet-udp --report /path/to/new-report.json
@@ -24,3 +24,10 @@ An opaque datagram on UDP port 443 exercises routing on that port. QUIC
 interoperability and the OpenWrt/Pixel operating checks require their own
 observations. The Seatrial report must show the lane's owned resources
 removed before the run is accepted.
+
+The four files in `fixture/` are public, inert test enrollment material.
+The private-key format in `identity.age` decrypts these two test envelopes
+only. The fixture has no external endpoint or account. The Secrets CLI seals
+both generations against the fixture recipient. The second generation omits
+the exit's UoT declaration. The fixture DNS maps the front name to the
+current lane address, and the front resolves the exit from its local hosts file.

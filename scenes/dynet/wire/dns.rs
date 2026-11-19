@@ -45,8 +45,18 @@ pub(super) fn ask(name: &str, id: u16) -> io::Result<Vec<u8>> {
     Ok(body)
 }
 
-fn response(body: &[u8], answer: [u8; 4], stream: bool) -> io::Result<Vec<u8>> {
+fn response(
+    body: &[u8],
+    answer: [u8; 4],
+    front: Option<[u8; 4]>,
+    stream: bool,
+) -> io::Result<Vec<u8>> {
     let question = question(body).ok_or_else(|| io::Error::other("invalid DNS question"))?;
+    let answer = if question.starts_with(b"\x09udp-front\x00") {
+        front.unwrap_or(answer)
+    } else {
+        answer
+    };
     let large = question.starts_with(b"\x05large\x07fixture\x00");
     let count: u16 = if large && !stream {
         0
@@ -75,23 +85,23 @@ fn response(body: &[u8], answer: [u8; 4], stream: bool) -> io::Result<Vec<u8>> {
     Ok(reply)
 }
 
-fn serve(mut stream: TcpStream, answer: [u8; 4]) -> io::Result<()> {
+fn serve(mut stream: TcpStream, answer: [u8; 4], front: Option<[u8; 4]>) -> io::Result<()> {
     stream.set_read_timeout(Some(Duration::from_secs(2)))?;
     stream.set_write_timeout(Some(Duration::from_secs(2)))?;
     while let Some(body) = tcp::read(&mut stream)? {
-        tcp::write(&mut stream, &response(&body, answer, true)?)?;
+        tcp::write(&mut stream, &response(&body, answer, front, true)?)?;
     }
     Ok(())
 }
 
 impl Endpoint<'_> {
-    pub(super) fn serve(&self, answer: [u8; 4]) -> io::Result<()> {
+    pub(super) fn serve(&self, answer: [u8; 4], front: Option<[u8; 4]>) -> io::Result<()> {
         let socket = UdpSocket::bind(self.0)?;
         let listener = TcpListener::bind(self.0)?;
         std::thread::spawn(move || {
             for stream in listener.incoming().flatten() {
                 std::thread::spawn(move || {
-                    let _ = serve(stream, answer);
+                    let _ = serve(stream, answer, front);
                 });
             }
         });
@@ -99,7 +109,7 @@ impl Endpoint<'_> {
         loop {
             let (length, peer) = socket.recv_from(&mut room)?;
             let body = &room[..length];
-            let reply = response(body, answer, false)?;
+            let reply = response(body, answer, front, false)?;
             socket.send_to(&reply, peer)?;
         }
     }

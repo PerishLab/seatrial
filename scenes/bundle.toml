@@ -230,3 +230,15 @@ group = "ensign"
 id = "ensign-claims"
 manifest = "ensign/cases/claims.toml"
 group = "ensign"
+
+[[groups]]
+id = "dynet"
+root = "dynet"
+setup = ["dynet/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "dynet-udp"
+manifest = "dynet/udp.toml"
+group = "dynet"

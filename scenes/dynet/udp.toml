@@ -1,4 +1,4 @@
-image = "plumb"
-timeout = 900
+image = "dynet"
+timeout = 420
 command = ["sh", "-eu", "udp.run.sh"]
 default = false
