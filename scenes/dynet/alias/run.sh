@@ -24,11 +24,7 @@ for name in "$client" "$exitnode"; do
   owned --volume "$SEATRIAL_VOLUME:/fixture/debian" --name "$name" --network "$lan" --cap-add NET_ADMIN --volume "$fixture:/fixture.py:ro" --entrypoint sleep "$image" infinity >/dev/null
 done
 lists=/fixture/debian/lists
-router mkdir -p "$lists"
-for endpoint in "$router" "$client" "$exitnode"; do
-  docker exec "$endpoint" sed -i 's|http://deb.debian.org/|https://deb.debian.org/|g' /etc/apt/sources.list.d/debian.sources
-done
-router apt-get -o "Dir::State::Lists=$lists" -o Acquire::Retries=1 -o Acquire::https::Timeout=20 -o APT::Update::Error-Mode=any update > "$work/index.log" 2>&1 || { cat "$work/index.log"; exit 1; }
+docker exec -i "$router" python3 - < "$SEATRIAL_SCENE/alias/packages.py" > "$work/index.log" 2>&1 || { cat "$work/index.log"; exit 1; }
 jobs=
 for endpoint in "$router" "$client" "$exitnode"; do
   set -- iproute2 python3
@@ -36,7 +32,7 @@ for endpoint in "$router" "$client" "$exitnode"; do
     "$router") set -- "$@" nftables ;;
     "$client") set -- "$@" systemd-resolved ;;
   esac
-  docker exec "$endpoint" env DEBIAN_FRONTEND=noninteractive apt-get -o "Dir::State::Lists=$lists" -o Acquire::Retries=1 -o Acquire::https::Timeout=20 -y --no-install-recommends install "$@" > "$work/$endpoint.packages" 2>&1 &
+  docker exec "$endpoint" env DEBIAN_FRONTEND=noninteractive apt-get -o "Dir::State::Lists=$lists" -o Dir::Etc::sourcelist=/fixture/debian/sources.list -o Dir::Etc::sourceparts=- -y --no-install-recommends install "$@" > "$work/$endpoint.packages" 2>&1 &
   jobs="$jobs $!"
 done
 failed=0
