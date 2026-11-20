@@ -1,0 +1,6 @@
+products = ["dynet", "secrets"]
+image = "plumb"
+timeout = 600
+command = ["sh", "-eu", "alias/run.sh"]
+default = false
+bug = "PerishLab/dynet#173"

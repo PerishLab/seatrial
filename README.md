@@ -341,6 +341,13 @@ this case's store. Lane teardown removes all stores, containers and namespace.
 
 ## Forwarded Dynet gateway
 
+`seatrial run --scenes scenes/dynet --case dynet-alias` runs the opt-in
+DNS alias gateway trial for PerishLab/dynet#173. A private VMess endpoint
+and two fixture DNS authorities exercise the original cluster and direct
+path. A dual-stack client checks the peer address observed by the TCP
+server. Shared ownership conflicts are checked in both orders, on warm
+answers, after expiry and after a gateway restart.
+
 `cargo run -- run --scenes scenes/dynet --case dynet-gateway` selects an opt-in
 LAN/WAN gateway trial. Its standard-library wire helper builds inside the scene
 material root. An unrelated client and router-originated DNS remain controls;

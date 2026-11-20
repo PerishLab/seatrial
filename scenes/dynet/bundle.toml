@@ -22,3 +22,8 @@ group = "dynet"
 id = "dynet-udp"
 manifest = "udp.toml"
 group = "dynet"
+
+[[cases]]
+id = "dynet-alias"
+manifest = "alias.toml"
+group = "dynet"
