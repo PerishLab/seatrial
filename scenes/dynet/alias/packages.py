@@ -16,8 +16,12 @@ upstreams = (("debian", "trixie"), ("debian", "trixie-updates"), ("debian-securi
 def fetch(path):
     destination = mirror / unquote(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["curl", "-fsSL", "--retry", "2", "--max-time", "90", "--output", str(destination),
-                    f"https://deb.debian.org/{path}"], check=True)
+    for host in ("deb.debian.org", "mirrors.ustc.edu.cn"):
+        fetched = subprocess.run(["curl", "-fsSL", "--connect-timeout", "10", "--max-time", "45",
+                                  "--output", str(destination), f"https://{host}/{path}"])
+        if fetched.returncode == 0:
+            return
+    fetched.check_returncode()
 
 
 def collect(paths):
