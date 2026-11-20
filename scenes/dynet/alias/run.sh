@@ -19,14 +19,29 @@ sixof() { docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalI
 probe() { docker exec "$client" python3 /fixture.py "$@"; }
 check() { probe check "$1" "$2" "$3" "$routerip"; }
 docker network create --ipv6 --label perish.owner=seatrial --label "perish.lane=$lane" "$lan" >/dev/null
-owned --name "$router" --network "$lan" --cap-add NET_ADMIN --device /dev/net/tun --sysctl net.ipv4.ip_forward=1 --volume "$SEATRIAL_BINARY_DYNET:/dynet:ro" --volume "$SEATRIAL_BINARY_SECRETS:/secrets:ro" --volume "$fixture:/fixture.py:ro" --entrypoint sleep "$image" infinity >/dev/null
+owned --volume "$SEATRIAL_VOLUME:/fixture/debian" --name "$router" --network "$lan" --cap-add NET_ADMIN --device /dev/net/tun --sysctl net.ipv4.ip_forward=1 --volume "$SEATRIAL_BINARY_DYNET:/dynet:ro" --volume "$SEATRIAL_BINARY_SECRETS:/secrets:ro" --volume "$fixture:/fixture.py:ro" --entrypoint sleep "$image" infinity >/dev/null
 for name in "$client" "$exitnode"; do
-  owned --name "$name" --network "$lan" --cap-add NET_ADMIN --volume "$fixture:/fixture.py:ro" --entrypoint sleep "$image" infinity >/dev/null
+  owned --volume "$SEATRIAL_VOLUME:/fixture/debian" --name "$name" --network "$lan" --cap-add NET_ADMIN --volume "$fixture:/fixture.py:ro" --entrypoint sleep "$image" infinity >/dev/null
 done
-for name in "$router" "$client" "$exitnode"; do
-  docker exec "$name" sh -ec 'if ! command -v ip >/dev/null || ! command -v python3 >/dev/null || ! command -v nft >/dev/null; then apt-get -o Acquire::Retries=2 update >/dev/null; DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install iproute2 python3 nftables >/dev/null; fi'
+lists=/fixture/debian/lists
+router mkdir -p "$lists"
+for endpoint in "$router" "$client" "$exitnode"; do
+  docker exec "$endpoint" sed -i 's|http://deb.debian.org/|https://deb.debian.org/|g' /etc/apt/sources.list.d/debian.sources
 done
-docker exec "$client" sh -eu -c 'if [ ! -x /usr/lib/systemd/systemd-resolved ]; then apt-get -o Acquire::Retries=2 update >/dev/null; DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install systemd-resolved >/dev/null; fi'
+router apt-get -o "Dir::State::Lists=$lists" -o Acquire::Retries=1 -o Acquire::https::Timeout=20 -o APT::Update::Error-Mode=any update > "$work/index.log" 2>&1 || { cat "$work/index.log"; exit 1; }
+jobs=
+for endpoint in "$router" "$client" "$exitnode"; do
+  set -- iproute2 python3
+  case "$endpoint" in
+    "$router") set -- "$@" nftables ;;
+    "$client") set -- "$@" systemd-resolved ;;
+  esac
+  docker exec "$endpoint" env DEBIAN_FRONTEND=noninteractive apt-get -o "Dir::State::Lists=$lists" -o Acquire::Retries=1 -o Acquire::https::Timeout=20 -y --no-install-recommends install "$@" > "$work/$endpoint.packages" 2>&1 &
+  jobs="$jobs $!"
+done
+failed=0
+for job in $jobs; do wait "$job" || failed=1; done
+if [ "$failed" -ne 0 ]; then cat "$work"/*.packages; exit 1; fi
 routerip=$(ipof "$router")
 clientip=$(ipof "$client")
 exitip=$(ipof "$exitnode")
