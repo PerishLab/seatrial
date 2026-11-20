@@ -242,3 +242,8 @@ profile = "host/v1"
 id = "dynet-udp"
 manifest = "dynet/udp.toml"
 group = "dynet"
+
+[[cases]]
+id = "dynet-alias"
+manifest = "dynet/alias.toml"
+group = "dynet"
