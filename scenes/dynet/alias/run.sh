@@ -11,7 +11,7 @@ mkdir -m 700 "$work"
 fixture=$SEATRIAL_SCENE/alias/fixture.py
 sing=ghcr.io/sagernet/sing-box:v1.13.14@sha256:c8b67944345dc84a226b648a71f854818606eae0813c4e6a452f192ef821b5b8
 uuid=85054868-dbcb-48d2-b8db-8e898753f9ea
-owned() { docker run --detach --init --label perish.owner=seatrial --label "perish.lane=$lane" "$@"; }
+owned() { docker run --detach --init --env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --label perish.owner=seatrial --label "perish.lane=$lane" "$@"; }
 router() { docker exec "$router" "$@"; }
 put() { docker exec -i "$router" sh -eu -c 'umask 077; cat > "$1"' sh "$1"; }
 ipof() { docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$1"; }
