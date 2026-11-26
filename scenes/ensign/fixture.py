@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import threading
 import time
+from typing import override
 
 
 def encode(value):
@@ -58,6 +59,7 @@ class Fixture:
 
 
 class Handler(BaseHTTPRequestHandler):
+    @override
     def log_message(self, *args):
         pass
 
@@ -69,6 +71,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    @override
     def do_GET(self):
         if hasattr(self.server,"relay"):
             return self.server.relay(self)
@@ -83,6 +86,7 @@ class Handler(BaseHTTPRequestHandler):
             case _:
                 self.reply(404, {})
 
+    @override
     def do_POST(self):
         if hasattr(self.server,"relay"):
             return self.server.relay(self)
@@ -97,8 +101,10 @@ class Handler(BaseHTTPRequestHandler):
             case _:
                 self.reply(404, {})
 
+    @override
     def do_PATCH(self):
         self.server.relay(self)
 
+    @override
     def do_DELETE(self):
         self.server.relay(self)

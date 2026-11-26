@@ -47,3 +47,13 @@ image = "ghcr.io/perishlab/images:stable"
 authority = "https://depot.seatrial.perish.uk"
 product = "seatrial"
 channel = "stable"
+
+[[ectropy.grant]]
+paths = [
+    "scenes/concord/provider.py",
+    "scenes/dynet/wire/main.rs",
+    "scenes/ensign/host.py",
+    "scenes/radicula/*.py",
+    "scenes/radicula/src/**/*.rs",
+]
+syntax = "environment"
