@@ -218,7 +218,21 @@ fn drift() {
 
 #[test]
 fn paths() {
-    let host = Host::new(&[("folder//asset", b"bytes")]);
+    let host = Host::new(&[("asset", b"bytes")]);
+    let prefix = host.pointer.manifest.url.strip_prefix(&host.url).unwrap();
+    let raw = String::from_utf8(host.responses.lock().unwrap()[prefix].clone())
+        .unwrap()
+        .replace("\"asset\"", "\"folder//asset\"")
+        .into_bytes();
+    let mut pointer = host.pointer.clone();
+    pointer.manifest.sha256 = sha(&raw);
+    let mut responses = host.responses.lock().unwrap();
+    responses.insert(prefix.into(), raw);
+    responses.insert(
+        "/channels/stable/scenes/latest.json".into(),
+        pointer.encode().unwrap(),
+    );
+    drop(responses);
     let root = tempfile::tempdir().unwrap();
     let path = root.path().join("material");
     assert!(host.source().fetch(&path).is_err());
