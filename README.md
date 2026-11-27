@@ -216,8 +216,9 @@ manifest written by Keel.
 Each Keel case runs on SQLite and on Postgres, with a fresh store and its own
 `keel-api` container:
 
-- `again`: bootstrap seals, and a second bootstrap is refused and writes no
-  custody file.
+- `again`: bootstrap seals. Retrying with the same model reports `already sealed`
+  without writing a second custody file. A different valid model is refused,
+  and both attempts preserve the original custody file.
 - `health`: `keel-api` serves `/health`.
 - `sudo`: a sudo write reads back, an anonymous write is refused and a forged
   sudo is 401.
@@ -408,10 +409,11 @@ CLI version. A product image without a tag follows that resolved release marker;
 an explicit tag or digest keeps its existing meaning. Reports record both the
 resolved reference and immutable runtime digest.
 
-The two pilot cases keep the legacy assertions: health bootstraps custody,
-starts the API, reads custody, and independently requires anonymous `/health`
-HTTP 200 after readiness; again requires the first custody file, refuses a
-second bootstrap without a second custody file, and requires status `sealed`.
+The health case bootstraps custody, starts the API, reads custody, and
+independently requires anonymous `/health` HTTP 200 after readiness. The again
+case requires `already sealed` for the same model and refusal for a different
+valid model. It checks that the same-model retry writes no second custody
+file, both attempts preserve the original custody file, and status is `sealed`.
 Each gets a fresh volume. The Keel group and its PostgreSQL instances remain;
 the portable group is excluded from the aggregate catalogue defaults and selected through
 its own Depot bundle. The stable writer bundle is independent of this pilot.

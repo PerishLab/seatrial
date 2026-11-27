@@ -98,6 +98,10 @@ impl<'a> Site<'a> {
     }
 
     pub async fn bootstrap(&self, custody: &str) -> Result<bool, String> {
+        Ok(self.ceremony(custody).await?.0)
+    }
+
+    pub async fn ceremony(&self, custody: &str) -> Result<(bool, String), String> {
         let path = format!("{ESTATE}/{custody}");
         let args = [
             "bootstrap",
@@ -106,7 +110,7 @@ impl<'a> Site<'a> {
             "--custody",
             &path,
         ];
-        Ok(self.keel(&args).await?.0)
+        self.keel(&args).await
     }
 
     pub async fn propose(&self, model: &Value) -> Result<(bool, String), String> {
@@ -137,17 +141,20 @@ impl<'a> Site<'a> {
         serde_json::from_slice(&bytes).map_err(|error| format!("model: {error}"))
     }
 
-    pub async fn held(&self, custody: &str) -> Result<bool, String> {
+    pub async fn absent(&self, custody: &str) -> Result<bool, String> {
         let path = format!("{ESTATE}/{custody}");
         let output = self
             .run
             .lane
-            .once(&self.spec("test", words(&["-f", &path])))
+            .once(&self.spec(
+                "sh",
+                words(&["-c", "test ! -e \"$1\" && test ! -L \"$1\"", "sh", &path]),
+            ))
             .await?;
         Ok(output.ok)
     }
 
-    pub async fn token(&self, custody: &str) -> Result<String, String> {
+    pub async fn custody(&self, custody: &str) -> Result<Vec<u8>, String> {
         let path = format!("{ESTATE}/{custody}");
         let output = self
             .run
@@ -157,7 +164,12 @@ impl<'a> Site<'a> {
         if !output.ok {
             return Err(format!("custody {custody}: {}", output.err));
         }
-        Ok(output.text())
+        Ok(output.out)
+    }
+
+    pub async fn token(&self, custody: &str) -> Result<String, String> {
+        let bytes = self.custody(custody).await?;
+        Ok(String::from_utf8_lossy(&bytes).trim().to_string())
     }
 
     pub fn client(&self, auth: Option<String>) -> Client<'_> {
