@@ -225,3 +225,70 @@ fn observation() {
     assert_eq!(subjects.coverage("bagua").unwrap().len(), 12);
     assert!(subjects.coverage("locus").unwrap().is_empty());
 }
+
+#[test]
+fn release() {
+    let root = Path::new("../../scenes").canonicalize().unwrap();
+    let required = [
+        "adopt",
+        "again",
+        "bagua-config",
+        "bagua-display",
+        "bagua-entry",
+        "bagua-exit",
+        "bagua-flow",
+        "bagua-history",
+        "bagua-input",
+        "bagua-interaction",
+        "bagua-lifecycle",
+        "bagua-mouse",
+        "bagua-observation",
+        "bagua-workspace",
+        "batch",
+        "blank",
+        "cache-lifecycle",
+        "cache-run",
+        "cascade",
+        "cling",
+        "closed",
+        "context",
+        "dangle",
+        "dynet-alias",
+        "dynet-udp",
+        "ensign-actual",
+        "ensign-claims",
+        "foreign",
+        "ghost",
+        "health",
+        "kin",
+        "lapse",
+        "lease",
+        "linger",
+        "lock-joint",
+        "lock-required",
+        "orphan",
+        "outage",
+        "outlive",
+        "portable",
+        "pulse",
+        "radicula-redis",
+        "release",
+        "restart",
+        "revived",
+        "rival",
+        "scoped",
+        "seatrial-placement",
+        "spare",
+        "sudo",
+        "unique",
+        "vetoed",
+        "writer",
+    ]
+    .map(str::to_owned);
+    let release = root.join("release.toml");
+    let groups = crate::scene::bundle::load(&root, &release).unwrap();
+    super::mapped::select(groups, &required).unwrap();
+
+    let error = select(&root, &required).err().unwrap();
+    assert!(error.contains("unknown case cache-lifecycle"), "{error}");
+}
