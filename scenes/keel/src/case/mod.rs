@@ -98,17 +98,40 @@ impl Site<'_> {
             self.bootstrap("custody").await?,
             "first bootstrap was refused",
         )?;
+        let custody = self.custody("custody").await?;
+        let (ok, said) = self.ceremony("second").await?;
         ensure(
-            self.held("custody").await?,
-            "first bootstrap wrote no custody file",
+            ok && said == "already sealed",
+            &format!("same-model bootstrap did not report already sealed: {said}"),
         )?;
         ensure(
-            !self.bootstrap("second").await?,
-            "second bootstrap was accepted",
+            self.absent("second").await?,
+            "same-model bootstrap wrote a second custody path",
         )?;
         ensure(
-            !self.held("second").await?,
-            "second bootstrap wrote a custody file",
+            self.custody("custody").await? == custody,
+            "same-model bootstrap changed the original custody file",
+        )?;
+        let mut model = self.model()?;
+        let body = model["units"]
+            .as_array_mut()
+            .and_then(|units| units.iter_mut().find(|unit| unit["key"] == "note"))
+            .and_then(|unit| unit["fields"].as_array_mut())
+            .and_then(|fields| fields.iter_mut().find(|field| field["name"] == "body"))
+            .ok_or("the model has no note body")?;
+        ensure(
+            body["need"] == false,
+            "the model already requires a note body",
+        )?;
+        body["need"] = json!(true);
+        let (ok, said) = self.propose(&model).await?;
+        ensure(
+            !ok && said.contains("occupied estate refuses bootstrap"),
+            &format!("wanted the occupied estate refusal for a different model: {said}"),
+        )?;
+        ensure(
+            self.custody("custody").await? == custody,
+            "different-model bootstrap changed the original custody file",
         )?;
         let (ok, status) = self.keel(&["status"]).await?;
         ensure(ok && status == "sealed", &format!("status is {status:?}"))

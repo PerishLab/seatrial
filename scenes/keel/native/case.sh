@@ -27,15 +27,29 @@ test "$(keel keel-api --version)" = "keel-api $SEATRIAL_VERSION_KEEL"
 bootstrap custody
 case "$1" in
   again)
-    keel test -f /keel/.local/custody
-    if bootstrap second; then
-      printf '%s\n' 'second bootstrap was accepted' >&2
+    custody=$(keel sha256sum /keel/.local/custody)
+    retry=$(bootstrap second)
+    if test "$retry" != 'already sealed'; then
+      printf '%s\n' 'same-model bootstrap did not report already sealed' >&2
       exit 1
     fi
-    if keel test -f /keel/.local/second; then
-      printf '%s\n' 'second bootstrap wrote a custody file' >&2
+    test "$(keel sha256sum /keel/.local/custody)" = "$custody"
+    keel test ! -e /keel/.local/second
+    keel test ! -L /keel/.local/second
+    if refusal=$(keel sh -eu -c '
+      model=$(sed "$1" /opt/model.json)
+      test "$model" != "$(cat /opt/model.json)"
+      printf "%s\n" "$model" > /keel/.local/changed.json
+      exec /opt/keel bootstrap --model /keel/.local/changed.json --custody /keel/.local/custody
+    ' sh 's/\("name":"body","kind":"text","only":{"kind":"free"},"serial":null,"need":\)false/\1true/' 2>&1); then
+      printf '%s\n' 'different-model bootstrap was accepted' >&2
       exit 1
     fi
+    case "$refusal" in
+      *'occupied estate refuses bootstrap'*) ;;
+      *) printf '%s\n' "$refusal" >&2; exit 1 ;;
+    esac
+    test "$(keel sha256sum /keel/.local/custody)" = "$custody"
     test "$(cli status)" = sealed
     ;;
   health)
