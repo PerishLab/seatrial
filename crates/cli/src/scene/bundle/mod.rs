@@ -12,8 +12,11 @@ pub struct Group {
 }
 
 pub fn read(root: &Path) -> Result<Vec<Group>, String> {
-    let path = root.join("bundle.toml");
-    let metadata = match std::fs::symlink_metadata(&path) {
+    load(root, &root.join("bundle.toml"))
+}
+
+pub(super) fn load(root: &Path, path: &Path) -> Result<Vec<Group>, String> {
+    let metadata = match std::fs::symlink_metadata(path) {
         Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
             return Err("Scene root requires an explicit format2 bundle.toml".into());

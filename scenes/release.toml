@@ -1,0 +1,336 @@
+format = 2
+
+[[groups]]
+id = "keel"
+root = "keel"
+setup = ["keel/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "again"
+manifest = "keel/core/again.toml"
+group = "keel"
+
+[[cases]]
+id = "blank"
+manifest = "keel/core/blank.toml"
+group = "keel"
+
+[[cases]]
+id = "closed"
+manifest = "keel/core/closed.toml"
+group = "keel"
+
+[[cases]]
+id = "health"
+manifest = "keel/core/health.toml"
+group = "keel"
+
+[[cases]]
+id = "restart"
+manifest = "keel/core/restart.toml"
+group = "keel"
+
+[[cases]]
+id = "sudo"
+manifest = "keel/core/sudo.toml"
+group = "keel"
+
+[[cases]]
+id = "unique"
+manifest = "keel/core/unique.toml"
+group = "keel"
+
+[[cases]]
+id = "batch"
+manifest = "keel/data/batch.toml"
+group = "keel"
+
+[[cases]]
+id = "cascade"
+manifest = "keel/data/cascade.toml"
+group = "keel"
+
+[[cases]]
+id = "portable"
+manifest = "keel/data/portable.toml"
+group = "keel"
+
+[[cases]]
+id = "pulse"
+manifest = "keel/data/pulse.toml"
+group = "keel"
+
+[[cases]]
+id = "scoped"
+manifest = "keel/data/scoped.toml"
+group = "keel"
+
+[[cases]]
+id = "spare"
+manifest = "keel/data/spare.toml"
+group = "keel"
+
+[[cases]]
+id = "foreign"
+manifest = "keel/life/foreign.toml"
+group = "keel"
+
+[[cases]]
+id = "ghost"
+manifest = "keel/life/ghost.toml"
+group = "keel"
+
+[[cases]]
+id = "lease"
+manifest = "keel/life/lease.toml"
+group = "keel"
+
+[[cases]]
+id = "linger"
+manifest = "keel/life/linger.toml"
+group = "keel"
+
+[[cases]]
+id = "outlive"
+manifest = "keel/life/outlive.toml"
+group = "keel"
+
+[[cases]]
+id = "revived"
+manifest = "keel/life/revived.toml"
+group = "keel"
+
+[[cases]]
+id = "vetoed"
+manifest = "keel/life/vetoed.toml"
+group = "keel"
+
+[[cases]]
+id = "adopt"
+manifest = "keel/race/adopt.toml"
+group = "keel"
+
+[[cases]]
+id = "cling"
+manifest = "keel/race/cling.toml"
+group = "keel"
+
+[[cases]]
+id = "dangle"
+manifest = "keel/race/dangle.toml"
+group = "keel"
+
+[[cases]]
+id = "kin"
+manifest = "keel/race/kin.toml"
+group = "keel"
+
+[[cases]]
+id = "lapse"
+manifest = "keel/race/lapse.toml"
+group = "keel"
+
+[[cases]]
+id = "orphan"
+manifest = "keel/race/orphan.toml"
+group = "keel"
+
+[[cases]]
+id = "rival"
+manifest = "keel/race/rival.toml"
+group = "keel"
+
+[[cases]]
+id = "outage"
+manifest = "keel/store/outage.toml"
+group = "keel"
+
+[[groups]]
+id = "bagua"
+root = "bagua"
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "bagua-workspace"
+manifest = "bagua/cases/workspace.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-lifecycle"
+manifest = "bagua/cases/lifecycle.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-flow"
+manifest = "bagua/cases/flow.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-config"
+manifest = "bagua/cases/config.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-entry"
+manifest = "bagua/cases/entry.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-history"
+manifest = "bagua/cases/history.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-input"
+manifest = "bagua/cases/input.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-mouse"
+manifest = "bagua/cases/mouse.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-display"
+manifest = "bagua/cases/display.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-interaction"
+manifest = "bagua/cases/interaction.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-exit"
+manifest = "bagua/cases/exit.toml"
+group = "bagua"
+
+[[cases]]
+id = "bagua-observation"
+manifest = "bagua/cases/observation.toml"
+group = "bagua"
+
+[[groups]]
+id = "ensign"
+root = "ensign"
+setup = ["ensign/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "ensign-actual"
+manifest = "ensign/cases/actual.toml"
+group = "ensign"
+
+[[cases]]
+id = "ensign-claims"
+manifest = "ensign/cases/claims.toml"
+group = "ensign"
+
+[[groups]]
+id = "dynet"
+root = "dynet"
+setup = ["dynet/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "dynet-udp"
+manifest = "dynet/udp.toml"
+group = "dynet"
+
+[[cases]]
+id = "dynet-alias"
+manifest = "dynet/alias.toml"
+group = "dynet"
+
+[[groups]]
+id = "concord"
+root = "concord"
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "context"
+manifest = "concord/context.toml"
+group = "concord"
+
+[[cases]]
+id = "release"
+manifest = "concord/release.toml"
+group = "concord"
+
+[[groups]]
+id = "writer"
+root = "plumb/writer"
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "writer"
+manifest = "plumb/writer/writer.toml"
+group = "writer"
+
+[[groups]]
+id = "lock"
+root = "plumb/lock"
+setup = ["plumb/lock/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "lock-joint"
+manifest = "plumb/lock/joint.toml"
+group = "lock"
+
+[[cases]]
+id = "lock-required"
+manifest = "plumb/lock/required.toml"
+group = "lock"
+
+[[groups]]
+id = "cache"
+root = "plumb/cache"
+setup = ["plumb/cache/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "cache-lifecycle"
+manifest = "plumb/cache/lifecycle.toml"
+group = "cache"
+
+[[cases]]
+id = "cache-run"
+manifest = "plumb/cache/run.toml"
+group = "cache"
+
+[[groups]]
+id = "radicula"
+root = "radicula"
+setup = ["radicula/suite.toml"]
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "radicula-redis"
+manifest = "radicula/redis.toml"
+group = "radicula"
+
+[[groups]]
+id = "seatrial"
+root = "seatrial"
+setup = []
+binding = "generation"
+profile = "host/v1"
+
+[[cases]]
+id = "seatrial-placement"
+manifest = "seatrial/cases/placement.toml"
+group = "seatrial"

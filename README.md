@@ -74,6 +74,28 @@ files remain ordinary assets. Without `--case`, manifest `default` values select
 the run. Excluded cases remain explicitly selectable. A group's explicit
 `setup` identifies its control file; directory ancestry supplies no setup.
 
+## Publishing the stable Scene
+
+Check out the exact annotated stable marker in a clean worktree. An operator
+with Depot publication authority runs the tagged source's publication entry
+point from that worktree under their authorized Runseal profile.
+
+```sh
+runseal :liberte sh crates/cli/consign-scene.sh v0.6.3
+```
+
+The command stages only the marker's tracked Scene materials and installs
+`scenes/release.toml` as the publication root's `bundle.toml`. Before it
+dispatches to Wharf, it runs the same selector used by `seatrial run` against
+the release index and requires every established stable ID from the
+digest-verified v0.6.1 and v0.6.2 catalogues. That set includes Plumb's
+`writer`, `cache-lifecycle` and `cache-run` and Seatrial's
+`seatrial-placement`. Review changes to the stable ID set explicitly.
+
+After Wharf settles, verify the exact marker's Depot version standing and
+compare it to the stable channel pointer. Verify the generation manifest and
+root index digests and confirm the declared IDs resolve in the lodged material.
+
 ## Explicit case mappings
 
 Bagua's independent catalogue is `scenes/bagua`: `bagua-workspace`,
