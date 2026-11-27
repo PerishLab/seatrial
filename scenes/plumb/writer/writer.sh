@@ -24,32 +24,23 @@ git --git-dir=/trial/origin.git show-ref > /trial/refs.before
 git show-ref > /trial/local.before
 git status --porcelain --untracked-files=all > /trial/source.before
 git worktree list --porcelain > /trial/trees.before
-cat > /trial/gh <<'GH'
-#!/bin/sh
-printf '%s\n' "$*" >> /trial/calls
-case "$*" in
-  'api repos/Example/probe/issues?state=open&per_page=100 --paginate --slurp')
-    printf '%s\n' '[[{"number":17,"type":{"name":"Auto"},"body":"<!-- plumb.auto/v1 operation=follow -->"}]]' ;;
-  'api repos/Example/probe/issues/17')
-    printf '%s\n' '{"user":{"id":1,"login":"fixture-writer[bot]"}}' ;;
-  'api graphql -f query=query{viewer{databaseId login}}')
-    printf '%s\n' '{"data":{"viewer":{"databaseId":2,"login":"foreign-operator"}}}' ;;
-  *)
-    printf '%s\n' "$*" > /trial/unexpected
-    printf '%s\n' 'unexpected provider operation' >&2
-    exit 97 ;;
-esac
-GH
-chmod +x /trial/gh
-status=0
-/opt/plumb follow /trial/source --github-command /trial/gh --json > /trial/out 2> /trial/err || status=$?
+mkdir -m 700 /trial/trust
+(
+  umask 077
+  cd /trial/trust
+  printf '%s\n' seatrial-writer-fixture > token
+  openssl req -x509 -newkey rsa:2048 -noenc -days 1 -subj /CN=Seatrial-Writer-CA \
+    -addext basicConstraints=critical,CA:TRUE -addext keyUsage=critical,keyCertSign \
+    -keyout ca.key -out ca.pem 2> /trial/cert.log
+  openssl req -new -newkey rsa:2048 -noenc -subj /CN=api.github.com \
+    -keyout server.key -out server.csr 2>> /trial/cert.log
+  printf '%s\n' 'subjectAltName=DNS:api.github.com' 'extendedKeyUsage=serverAuth' > server.ext
+  openssl x509 -req -days 1 -CA ca.pem -CAkey ca.key -CAcreateserial \
+    -in server.csr -extfile server.ext -out server.pem 2>> /trial/cert.log
+) || { cat /trial/cert.log >&2; exit 1; }
+python3 /scene/provider.py
 cat /trial/err
-test "$status" = 1
 grep -F 'operation writer fixture-writer[bot] (id 1), but this follow runs as foreign-operator (id 2)' /trial/err
-test ! -e /trial/unexpected
-grep -Fx 'api repos/Example/probe/issues?state=open&per_page=100 --paginate --slurp' /trial/calls
-grep -Fx 'api repos/Example/probe/issues/17' /trial/calls
-grep -Fx 'api graphql -f query=query{viewer{databaseId login}}' /trial/calls
 git --git-dir=/trial/origin.git show-ref > /trial/refs.after
 git show-ref > /trial/local.after
 git status --porcelain --untracked-files=all > /trial/source.after
